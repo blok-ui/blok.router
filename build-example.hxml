@@ -1,0 +1,14 @@
+-cp src
+-cp example/src
+
+-lib blok.core
+
+-main Run
+
+--dce full
+
+-D blok.client
+-D js-es=6
+-D analyzer-optimize
+
+-js dist/index.js
