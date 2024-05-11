@@ -1,13 +1,13 @@
 package blok.router;
 
+import blok.macro.*;
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import blok.macro.*;
-import blok.macro.builder.*;
+import kit.macro.*;
 
-using kit.Hash;
-using blok.macro.MacroTools;
 using blok.router.RouteTools;
+using kit.Hash;
+using kit.macro.Tools;
 
 function buildGeneric() {
   return switch Context.getLocalType() {
@@ -27,12 +27,12 @@ function buildRoute(url:String) {
 
   if (path.typePathExists()) return TPath(path);
   
-  var builder = new FieldBuilder([]);
+  var fields = new ClassFieldCollection([]);
   var route = url.processRoute();
   var routeParamsType = route.paramsType;
   var renderType = macro:(params:$routeParamsType)->blok.ui.Child;
   
-  builder.add(macro class {
+  fields.add(macro class {
     static final matcher = ${route.matcher};
   
     public static function createUrl(props:$routeParamsType):String {
@@ -68,7 +68,7 @@ function buildRoute(url:String) {
         name: 'Matchable'
       }
     ], false, true, false),
-    fields: builder.export()
+    fields: fields.export()
   });
 
   return TPath(path);

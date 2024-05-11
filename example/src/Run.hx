@@ -10,7 +10,7 @@ function main() {
       .child(Link.to('/test').child('Test'))
     ),
     new Route<'/test'>(_ -> Html.div()
-      .child(Link.to('/').child('<- Home'))
+      .child(Html.view(<Link url="/">"home"</Link>))
       .child('Test')
     )
   ];
