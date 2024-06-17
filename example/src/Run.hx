@@ -21,7 +21,7 @@ function main() {
 		Browser.document.getElementById('root'),
 		() -> Provider
 			.provide(() -> new Navigator({url: '/'}))
-			.child(_ -> Html.view(<Router fallback={_ -> 'No routes found'}>
+			.child(_ -> Html.view(<Router>
 				<Route to="/">{_ -> <div>
 					'Home'
 					<Link url="/test">'Test'</Link>
@@ -31,7 +31,9 @@ function main() {
 					<Link url="/">"home"</Link>
 					'Test'
 				</div>}</Route>
+				// Note: `params` here are type checked!
 				<Route to="/other/{thing:String}">{params -> params.thing}</Route>
+				<fallback>{url -> <p>'No routes found for ' {url}</p>}</fallback>
 			</Router>))
 	);
 }
