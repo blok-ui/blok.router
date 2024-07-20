@@ -46,6 +46,8 @@ function buildBaseRoute() {
 					throw 'assert';
 			}
 		}
+
+		public function dispose() {}
 	});
 
 	Context.defineType({
@@ -105,6 +107,8 @@ function buildRoute(url:String) {
 			}
 			return None;
 		}
+
+		public function dispose() {}
 	});
 
 	Context.defineType({

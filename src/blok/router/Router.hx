@@ -6,6 +6,10 @@ class Router extends Component {
 	@:attribute final fallback:(url:String) -> Child;
 	@:children @:attribute final routes:MatchableCollection;
 
+	function setup() {
+		addDisposable(routes);
+	}
+
 	function render():Child {
 		var nav = Navigator.from(this);
 		var url = nav.url();

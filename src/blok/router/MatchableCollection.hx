@@ -1,5 +1,6 @@
 package blok.router;
 
+import blok.core.DisposableItem;
 import blok.ui.Child;
 
 using Kit;
@@ -16,5 +17,9 @@ abstract MatchableCollection(Array<Matchable>) from Array<Matchable> {
 			case None:
 		}
 		return None;
+	}
+
+	@:to public function toDisposable():DisposableItem {
+		return () -> for (matchable in this) matchable.dispose();
 	}
 }
