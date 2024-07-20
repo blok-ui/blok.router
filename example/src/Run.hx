@@ -46,7 +46,7 @@ class TestTwo extends PageRoute<'/test2/{foo:String}'> {
 	@:computed final foobar:String = foo() + ' bar';
 	@:resource final test:String = 'foo'; // @todo: something better
 
-	public function render(context:View):Child {
+	public function render():Child {
 		return Html.view(<div>
 			<h1>title</h1>
 			<p>"The current value is:" {foo()} " and also " {foobar()}</p>

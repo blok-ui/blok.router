@@ -60,7 +60,16 @@ function buildPageRoute(url:String) {
 	var fields = new ClassFieldCollection([]);
 
 	fields.add(macro class {
-		public abstract function render(context:blok.ui.View):blok.ui.Child;
+		@:noCompletion
+		var __context:blok.signal.Signal<Null<blok.ui.View>> = new blok.signal.Signal(null);
+
+		function context():blok.ui.View {
+			var context = __context.get();
+			blok.debug.Debug.assert(context != null);
+			return context;
+		}
+
+		public abstract function render():blok.ui.Child;
 	});
 
 	Context.defineType({
@@ -152,7 +161,10 @@ class PageRouteBuilder implements BuildStep {
 				if (matcher.match(url)) {
 					var params = ${route.paramsBuilder};
 					@:mergeBlock $b{update};
-					return Some(() -> blok.ui.Scope.wrap(render));
+					return Some(() -> blok.ui.Scope.wrap(context -> {
+						__context.set(context);
+						return render();
+					}));
 				}
 				return None;
 			}
