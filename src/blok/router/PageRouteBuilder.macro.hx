@@ -11,6 +11,7 @@ using kit.Hash;
 using kit.macro.Tools;
 
 final factory = new ClassBuilderFactory([
+	new ConstantFieldBuildStep(),
 	new ComputedFieldBuildStep(),
 	new SignalFieldBuildStep({
 		updatable: false
