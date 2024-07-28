@@ -45,8 +45,10 @@ class TestTwo extends PageRoute<'/test2/{foo:String}'> {
 	@:signal final testSignal:String = 'Ok';
 	@:computed final foobar:String = foo() + ' bar';
 	@:resource final test:String = 'foo'; // @todo: something better
+	@:context final navigator:Navigator;
 
 	public function render():Child {
+		trace(navigator.url);
 		return Html.view(<div>
 			<h1>title</h1>
 			<p>"The current value is:" {foo()} " and also " {foobar()}</p>

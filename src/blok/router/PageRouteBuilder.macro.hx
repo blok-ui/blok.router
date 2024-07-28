@@ -6,6 +6,7 @@ import haxe.macro.Expr;
 import kit.macro.*;
 import kit.macro.step.*;
 
+using haxe.macro.Tools;
 using blok.router.RouteTools;
 using kit.Hash;
 using kit.macro.Tools;
@@ -17,6 +18,7 @@ final factory = new ClassBuilderFactory([
 		updatable: false
 	}),
 	new ResourceFieldBuildStep(),
+	new PageRouteContextFieldBuildStep(),
 	new ConstructorBuildStep({
 		customParser: options -> {
 			var propType = options.props;
@@ -102,8 +104,6 @@ function build(url:String) {
 		.export();
 }
 
-// @todo: Does this need to be a DisposableHost? I think Resources don't get
-// disposed automatically?
 class PageRouteBuilder implements BuildStep {
 	public final priority:Priority = Late;
 
@@ -173,5 +173,59 @@ class PageRouteBuilder implements BuildStep {
 				owner.dispose();
 			}
 		});
+	}
+}
+
+class PageRouteContextFieldBuildStep implements BuildStep {
+	public final priority:Priority = Normal;
+
+	public function new() {}
+
+	public function apply(builder:ClassBuilder) {
+		for (field in builder.findFieldsByMeta(':context')) {
+			parseContextField(builder, field);
+		}
+	}
+
+	function parseContextField(builder:ClassBuilder, field:Field) {
+		switch field.kind {
+			case FVar(t, e):
+				if (!field.access.contains(AFinal)) {
+					field.pos.error(':context fields must be final');
+				}
+				if (t == null) {
+					field.pos.error(':context fields require a type');
+				}
+				if (e != null) {
+					e.pos.error(':context fields cannot have an expression');
+				}
+				if (!Context.unify(t.toType(), 'blok.context.Context'.toComplex().toType())) {
+					field.pos.error(':context fields need to be a blok.context.Context');
+				}
+
+				var name = field.name;
+				var getName = 'get_$name';
+				var backingName = '__backing_$name';
+				var access = field.access;
+				var path = switch t {
+					case TPath(p): p.pack.concat([p.name, p.sub]).filter(n -> n != null);
+					default: throw 'assert';
+				}
+
+				field.kind = FProp('get', 'never', t);
+
+				builder.add(macro class {
+					var $backingName:Null<blok.signal.Computation<$t>> = null;
+
+					function $getName():$t {
+						if (this.$backingName == null) {
+							this.$backingName = new blok.signal.Computation<$t>(() -> $p{path}.from(context()));
+						}
+						return this.$backingName();
+					}
+				});
+			default:
+				field.pos.error(':context fields must be variables.');
+		}
 	}
 }
