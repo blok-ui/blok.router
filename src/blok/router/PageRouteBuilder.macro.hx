@@ -214,13 +214,14 @@ class PageRouteContextFieldBuildStep implements BuildStep {
 
 				field.kind = FProp('get', 'never', t);
 
+				builder.hook(LateInit)
+					.addExpr(macro this.$backingName = new blok.signal.Computation<$t>(() -> $p{path}.from(context())));
+
 				builder.add(macro class {
 					var $backingName:Null<blok.signal.Computation<$t>> = null;
 
-					function $getName():$t {
-						if (this.$backingName == null) {
-							this.$backingName = new blok.signal.Computation<$t>(() -> $p{path}.from(context()));
-						}
+					#if !debug inline #end function $getName():$t {
+						blok.debug.Debug.assert(this.$backingName != null);
 						return this.$backingName();
 					}
 				});
