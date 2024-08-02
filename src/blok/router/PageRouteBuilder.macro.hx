@@ -68,15 +68,25 @@ function buildPageRoute(url:String) {
 }
 
 function build(url:String) {
-	return ClassBuilder.fromContext()
-		.step(new ConstantFieldBuildStep())
-		.step(new ComputedFieldBuildStep())
-		.step(new SignalFieldBuildStep({
-			updatable: false
-		}))
-		.step(new ResourceFieldBuildStep())
-		.step(new PageRouteContextFieldBuildStep())
-		.step(new ConstructorBuildStep({
+	return ClassBuilder.fromContext().addBundle(new PageRouteBuilder(url)).export();
+}
+
+class PageRouteBuilder implements BuildBundle implements BuildStep {
+	public final priority:Priority = Late;
+
+	final url:String;
+
+	public function new(url) {
+		this.url = url;
+	}
+
+	public function steps():Array<BuildStep> return [
+		new ConstantFieldBuildStep(),
+		new ComputedFieldBuildStep(),
+		new SignalFieldBuildStep({updatable: false}),
+		new ResourceFieldBuildStep(),
+		new PageRouteContextFieldBuildStep(),
+		new ConstructorBuildStep({
 			customParser: options -> {
 				var propType = options.props;
 				return (macro function(props:$propType) {
@@ -95,19 +105,9 @@ function build(url:String) {
 					}
 				}).extractFunction();
 			}
-		}))
-		.step(new PageRouteBuilder(url))
-		.export();
-}
-
-class PageRouteBuilder implements BuildStep {
-	public final priority:Priority = Late;
-
-	final url:String;
-
-	public function new(url) {
-		this.url = url;
-	}
+		}),
+		this
+	];
 
 	public function apply(builder:ClassBuilder) {
 		var route = url.processRoute();
