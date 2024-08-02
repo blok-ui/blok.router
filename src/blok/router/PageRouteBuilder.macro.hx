@@ -11,36 +11,6 @@ using blok.router.RouteTools;
 using kit.Hash;
 using kit.macro.Tools;
 
-final factory = new ClassBuilderFactory([
-	new ConstantFieldBuildStep(),
-	new ComputedFieldBuildStep(),
-	new SignalFieldBuildStep({
-		updatable: false
-	}),
-	new ResourceFieldBuildStep(),
-	new PageRouteContextFieldBuildStep(),
-	new ConstructorBuildStep({
-		customParser: options -> {
-			var propType = options.props;
-			return (macro function(props:$propType) {
-				${options.inits};
-				var prevOwner = blok.core.Owner.setCurrent(owner);
-				try ${options.lateInits} catch (e) {
-					blok.core.Owner.setCurrent(prevOwner);
-					throw e;
-				}
-				blok.core.Owner.setCurrent(prevOwner);
-				${
-					switch options.previousExpr {
-						case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
-						case None: macro null;
-					}
-				}
-			}).extractFunction();
-		}
-	})
-]);
-
 function buildGeneric() {
 	return switch Context.getLocalType() {
 		case TInst(_, [TInst(_.get() => {kind: KExpr(macro $v{(url : String)})}, _)]):
@@ -98,9 +68,35 @@ function buildPageRoute(url:String) {
 }
 
 function build(url:String) {
-	return factory
-		.withSteps(new PageRouteBuilder(url))
-		.fromContext()
+	return ClassBuilder.fromContext()
+		.step(new ConstantFieldBuildStep())
+		.step(new ComputedFieldBuildStep())
+		.step(new SignalFieldBuildStep({
+			updatable: false
+		}))
+		.step(new ResourceFieldBuildStep())
+		.step(new PageRouteContextFieldBuildStep())
+		.step(new ConstructorBuildStep({
+			customParser: options -> {
+				var propType = options.props;
+				return (macro function(props:$propType) {
+					${options.inits};
+					var prevOwner = blok.core.Owner.setCurrent(owner);
+					try ${options.lateInits} catch (e) {
+						blok.core.Owner.setCurrent(prevOwner);
+						throw e;
+					}
+					blok.core.Owner.setCurrent(prevOwner);
+					${
+						switch options.previousExpr {
+							case Some(expr): macro blok.signal.Observer.untrack(() -> $expr);
+							case None: macro null;
+						}
+					}
+				}).extractFunction();
+			}
+		}))
+		.step(new PageRouteBuilder(url))
 		.export();
 }
 
