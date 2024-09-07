@@ -1,16 +1,90 @@
 package blok.router;
 
+import blok.html.HtmlAttributes.GlobalAttr;
 import blok.html.Html;
+import blok.html.HtmlAttributeName;
+import blok.signal.Signal;
 import blok.ui.*;
 
-class Link extends Component {
-	public static function to(url) {
-		return new VLink(url);
+abstract Link({
+	public final url:String;
+
+	public final props:{}
+
+	public final children:Children;
+}) {
+	@:fromMarkup
+	@:noUsing
+	@:noCompletion
+	public static function fromMarkup(props:GlobalAttr & {to:String}, ...children:Child) {
+		var url = Reflect.field(props, 'to');
+		Reflect.deleteField(props, 'to');
+		return new Link(url, props).child(...children).node();
 	}
 
+	public static function to(url) {
+		return new Link(url);
+	}
+
+	public inline function new(url, ?props:{}) {
+		this = {
+			url: url,
+			props: props ?? {},
+			children: []
+		};
+	}
+
+	public inline function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
+		Reflect.setField(this.props, name, value);
+	}
+
+	public inline function child(...children:Child) {
+		for (child in children) if (child.type == Fragment.componentType) {
+			abstract.child(...child.getProps().children);
+		} else {
+			this.children.push(child);
+		}
+		return abstract;
+	}
+
+	@:to
+	public function node():Child {
+		return LinkWrapper.node({
+			url: this.url,
+			child: context -> {
+				var node = Html.a()
+					.attr('href', this.url)
+					.child(this.children);
+
+				for (prop in Reflect.fields(this.props)) {
+					node.attr(prop, Reflect.field(this.props, prop));
+				}
+
+				switch Navigator.maybeFrom(context) {
+					case Some(nav):
+						// @todo: This needs to be configurable -- we won't
+						// always want to intercept it.
+						node.on(Click, e -> {
+							e.preventDefault();
+							nav.go(this.url);
+						});
+					case None:
+				}
+
+				return node;
+			}
+		});
+	}
+
+	@:to
+	public inline function toChildren():Children {
+		return node();
+	}
+}
+
+class LinkWrapper extends Component {
 	@:attribute final url:String;
-	@:attribute final className:String = null;
-	@:children @:attribute final children:Children;
+	@:attribute final child:(context:View) -> Child;
 
 	#if !blok.client
 	function setup() {
@@ -20,52 +94,7 @@ class Link extends Component {
 	}
 	#end
 
-	public function render():Child {
-		var node = Html.a()
-			.attr('href', url)
-			.attr(ClassName, className)
-			.child(children);
-
-		switch Navigator.maybeFrom(this) {
-			case Some(nav):
-				// @todo: This needs to be configurable -- we won't
-				// always want to intercept it.
-				node.on(Click, e -> {
-					e.preventDefault();
-					nav.go(url);
-				});
-			case None:
-		}
-
-		return node;
-	}
-}
-
-abstract VLink({
-	public final url:String;
-
-	public final ?className:String;
-
-	public final children:Children;
-}) {
-	public inline function new(url) {
-		this = {
-			url: url,
-			children: []
-		};
-	}
-
-	public inline function child(child:Child) {
-		this.children.push(child);
-		return abstract;
-	}
-
-	@:to
-	public inline function node():Child {
-		return Link.node({
-			url: this.url,
-			className: this.className,
-			children: this.children
-		});
+	function render() {
+		return child(this);
 	}
 }

@@ -25,11 +25,11 @@ function main() {
 			.child(_ -> Html.view(<Router>
 				<Route to="/">{_ -> <div>
 					'Home'
-					<Link url="/test">'Test'</Link>
-					<Link url="/other/foo">'foo'</Link>
+					<Link to="/test">'Test'</Link>
+					<Link to="/other/foo">'foo'</Link>
 				</div>}</Route>
 				<Route to="/test">{_ -> <div>
-					<Link url="/">"home"</Link>
+					<Link to="/">"home"</Link>
 					'Test'
 				</div>}</Route>
 				// Note: `params` here are type checked!
