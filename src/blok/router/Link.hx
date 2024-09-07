@@ -36,6 +36,7 @@ abstract Link({
 
 	public inline function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
 		Reflect.setField(this.props, name, value);
+		return abstract;
 	}
 
 	public inline function child(...children:Child) {
