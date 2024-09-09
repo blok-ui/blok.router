@@ -17,7 +17,6 @@ function main() {
 	// 	Route.to('/other/{thing:String}')
 	// 		.renders(params -> params.thing)
 	// ];
-
 	Client.mount(
 		Browser.document.getElementById('root'),
 		() -> Provider
