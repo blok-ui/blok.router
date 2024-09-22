@@ -102,7 +102,7 @@ class PageRouteBuilder implements BuildStep {
 							type: ct,
 							optional: false
 						})
-						.addExpr(macro this.$name = new blok.signal.Signal(props.$name));
+						.addExpr(macro this.$name = props.$name);
 					builder.updateHook()
 						.addExpr(macro this.$name.set(props.$name));
 				}

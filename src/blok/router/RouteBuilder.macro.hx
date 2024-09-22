@@ -87,6 +87,10 @@ function buildRoute(url:String) {
 			return blok.router.Link.to(createUrl(props));
 		}
 
+		public inline static function route(render):blok.router.Matchable {
+			return new $path(render);
+		}
+
 		var render:kit.Maybe<$renderType>;
 
 		public function new(?render) {
