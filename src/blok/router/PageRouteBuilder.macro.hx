@@ -124,6 +124,7 @@ class RouteConstructorBuildStep implements BuildStep {
 	}
 
 	public function apply(builder:ClassBuilder) {
+		var routeParamsType = route.paramsType;
 		var componentPath = builder.getTypePath();
 		var router = builder.hook(RouterProps).getProps();
 		var init = builder.hook(Init);
@@ -160,6 +161,14 @@ class RouteConstructorBuildStep implements BuildStep {
 		};
 
 		builder.add(macro class {
+			public static function createUrl(props:$routeParamsType):String {
+				return ${route.urlBuilder};
+			}
+
+			public static function link(props:$routeParamsType) {
+				return blok.router.Link.to(createUrl(props));
+			}
+
 			@:fromMarkup
 			@:noUsing
 			public static function route(props:$propsType):blok.router.Matchable {
