@@ -26,6 +26,8 @@ function main() {
 					'Home'
 					<Link to="/test">'Test'</Link>
 					<Link to="/other/foo">'foo'</Link>
+					<Link to="/test2/foo">'Test 2'</Link>
+					<Link to="/test3/foo">'Test 3'</Link>
 				</div>}</Route>
 				<Route to="/test">{_ -> <div>
 					<Link to="/">"home"</Link>
@@ -34,13 +36,14 @@ function main() {
 				// Note: `params` here are type checked!
 				<Route to="/other/{thing:String}">{params -> params.thing}</Route>
 				<TestTwo title="Test Two" />
+				<TestThree name="World" />
 				<fallback>{url -> <p>'No routes found for ' {url}</p>}</fallback>
 			</Router>))
 	);
 }
 
 class TestTwo extends PageRoute<'/test2/{foo:String}'> {
-	@:constant final title:String;
+	@:attribute final title:String;
 	@:signal final testSignal:String = 'Ok';
 	@:computed final foobar:String = foo() + ' bar';
 	@:resource final test:String = 'foo'; // @todo: something better
@@ -52,5 +55,13 @@ class TestTwo extends PageRoute<'/test2/{foo:String}'> {
 			<h1>title</h1>
 			<p>"The current value is:" {foo()} " and also " {foobar()}</p>
 		</div>);
+	}
+}
+
+class TestThree extends PageRoute<'/test3/{bar:String}'> {
+	@:attribute final name:String;
+
+	function render():Child {
+		return Text.node('Hello ' + name + ' ' + bar());
 	}
 }
