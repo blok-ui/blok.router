@@ -42,7 +42,7 @@ function main() {
 	);
 }
 
-class TestTwo extends PageRoute<'/test2/{foo:String}'> {
+class TestTwo extends RouteView<'/test2/{foo:String}'> {
 	@:attribute final title:String;
 	@:signal final testSignal:String = 'Ok';
 	@:computed final foobar:String = foo() + ' bar';
@@ -58,7 +58,7 @@ class TestTwo extends PageRoute<'/test2/{foo:String}'> {
 	}
 }
 
-class TestThree extends PageRoute<'/test3/{bar:String}'> {
+class TestThree extends RouteView<'/test3/{bar:String}'> {
 	@:attribute final name:String;
 
 	function render():Child {

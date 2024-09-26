@@ -15,17 +15,17 @@ using kit.macro.Tools;
 function buildGeneric() {
 	return switch Context.getLocalType() {
 		case TInst(_, [TInst(_.get() => {kind: KExpr(macro $v{(url : String)})}, _)]):
-			buildPageRoute(url.normalizeUrl());
+			buildRouteView(url.normalizeUrl());
 		default:
 			throw 'assert';
 	}
 }
 
-function buildPageRoute(url:String) {
+function buildRouteView(url:String) {
 	var suffix = url.hash();
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
-	var name = 'PageRoute_${suffix}';
+	var name = 'RouteView_${suffix}';
 	var path:TypePath = {pack: pack, name: name, params: []};
 
 	if (path.typePathExists()) return TPath(path);
@@ -39,14 +39,13 @@ function buildPageRoute(url:String) {
 		meta: [
 			{
 				name: ':autoBuild',
-				params: [macro blok.router.PageRouteBuilder.build($v{url})],
+				params: [macro blok.router.RouteViewBuilder.build($v{url})],
 				pos: (macro null).pos
 			}
 		],
 		kind: TDClass({
-			pack: ['blok', 'router'],
-			name: 'PageRoute',
-			sub: 'PageRouteImpl'
+			pack: ['blok', 'ui'],
+			name: 'ProxyView'
 		}, [], false, false, true),
 		fields: []
 	});
@@ -59,14 +58,14 @@ function build(url:String) {
 		.addBundle(new ComponentBuilder({
 			createFromMarkupMethod: false
 		}))
-		.addStep(new PageRouteBuilder(url))
+		.addStep(new RouteViewBuilder(url))
 		.addStep(new RouteConstructorBuildStep(url))
 		.export();
 }
 
 final RouterProps = 'router.prop';
 
-class PageRouteBuilder implements BuildStep {
+class RouteViewBuilder implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final url:String;
