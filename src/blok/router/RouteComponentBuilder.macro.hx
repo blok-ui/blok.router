@@ -15,17 +15,17 @@ using kit.macro.Tools;
 function buildGeneric() {
 	return switch Context.getLocalType() {
 		case TInst(_, [TInst(_.get() => {kind: KExpr(macro $v{(url : String)})}, _)]):
-			buildRouteView(url.normalizeUrl());
+			buildRouteComponent(url.normalizeUrl());
 		default:
 			throw 'assert';
 	}
 }
 
-function buildRouteView(url:String) {
+function buildRouteComponent(url:String) {
 	var suffix = url.hash();
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
-	var name = 'RouteView_${suffix}';
+	var name = 'RouteComponent_${suffix}';
 	var path:TypePath = {pack: pack, name: name, params: []};
 
 	if (path.typePathExists()) return TPath(path);
@@ -39,7 +39,7 @@ function buildRouteView(url:String) {
 		meta: [
 			{
 				name: ':autoBuild',
-				params: [macro blok.router.RouteViewBuilder.build($v{url})],
+				params: [macro blok.router.RouteComponentBuilder.build($v{url})],
 				pos: (macro null).pos
 			}
 		],
@@ -58,14 +58,14 @@ function build(url:String) {
 		.addBundle(new ComponentBuilder({
 			createFromMarkupMethod: false
 		}))
-		.addStep(new RouteViewBuilder(url))
+		.addStep(new RouteComponentBuilder(url))
 		.addStep(new RouteConstructorBuildStep(url))
 		.export();
 }
 
 final RouterProps = 'router.prop';
 
-class RouteViewBuilder implements BuildStep {
+class RouteComponentBuilder implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final url:String;
@@ -159,15 +159,31 @@ class RouteConstructorBuildStep implements BuildStep {
 			pos: (macro null).pos
 		};
 
+		switch routeParamsType {
+			case TAnonymous(params) if (params.length == 0):
+				builder.add(macro class {
+					public static function createUrl():String {
+						var props = {};
+						return ${route.urlBuilder};
+					}
+
+					public static function link() {
+						return blok.router.Link.to(createUrl());
+					}
+				});
+			default:
+				builder.add(macro class {
+					public static function createUrl(props:$routeParamsType):String {
+						return ${route.urlBuilder};
+					}
+
+					public static function link(props:$routeParamsType) {
+						return blok.router.Link.to(createUrl(props));
+					}
+				});
+		}
+
 		builder.add(macro class {
-			public static function createUrl(props:$routeParamsType):String {
-				return ${route.urlBuilder};
-			}
-
-			public static function link(props:$routeParamsType) {
-				return blok.router.Link.to(createUrl(props));
-			}
-
 			@:fromMarkup
 			@:noUsing
 			public static function route(props:$propsType):blok.router.Matchable {

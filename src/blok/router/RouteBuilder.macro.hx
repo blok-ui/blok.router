@@ -76,16 +76,32 @@ function buildRoute(url:String) {
 	var routeParamsType = route.paramsType;
 	var renderType = macro :(params:$routeParamsType) -> blok.ui.Child;
 
+	switch routeParamsType {
+		case TAnonymous(params) if (params.length == 0):
+			fields.add(macro class {
+				public static function createUrl():String {
+					var props = {};
+					return ${route.urlBuilder};
+				}
+
+				public static function link() {
+					return blok.router.Link.to(createUrl());
+				}
+			});
+		default:
+			fields.add(macro class {
+				public static function createUrl(props:$routeParamsType):String {
+					return ${route.urlBuilder};
+				}
+
+				public static function link(props:$routeParamsType) {
+					return blok.router.Link.to(createUrl(props));
+				}
+			});
+	}
+
 	fields.add(macro class {
 		static final matcher = ${route.matcher};
-
-		public static function createUrl(props:$routeParamsType):String {
-			return ${route.urlBuilder};
-		}
-
-		public static function link(props:$routeParamsType) {
-			return blok.router.Link.to(createUrl(props));
-		}
 
 		public inline static function route(render):blok.router.Matchable {
 			return new $path(render);

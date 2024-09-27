@@ -3,8 +3,14 @@ package blok.router;
 import blok.data.Model;
 import blok.context.Context;
 
-@:fallback(new Navigator({url: '/'}))
+@:fallback(instance())
 class Navigator extends Model implements Context {
+	public static function instance() {
+		static var navigator:Null<Navigator> = null;
+		if (navigator == null) navigator = new Navigator({url: '/'});
+		return navigator;
+	}
+
 	@:signal public final url:String;
 
 	#if pine.client
