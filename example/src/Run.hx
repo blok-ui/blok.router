@@ -1,7 +1,9 @@
+import kit.Error.ErrorCode;
 import blok.context.*;
 import blok.html.*;
 import blok.router.*;
 import blok.ui.*;
+import blok.boundary.ErrorBoundary;
 import js.Browser;
 
 function main() {
@@ -10,31 +12,40 @@ function main() {
 		() -> Provider
 			.provide(() -> new Navigator({url: '/'}))
 			.child(_ -> Html.view(<main>
-				<header>
-					<Link to={Home.createUrl()}><h1>"Example"</h1></Link>
-					<nav>
-						<ul>
-							<li><Link to="/test">'Test'</Link></li>
-							<li><Link to="/other/foo">'foo'</Link></li>
-							<li><Link to={TestTwo.createUrl({foo: 'foo'})}>'Test 2'</Link></li>
-							<li><Link to={TestThree.createUrl({bar: 'Bin'})}>'Test 3'</Link></li>
-						</ul>
-					</nav>
-				</header>
+				<ErrorBoundary>
+					<header>
+						<Link to={Home.createUrl()}><h1>"Example"</h1></Link>
+						<nav>
+							<ul>
+								<li><Link to="/test">'Test'</Link></li>
+								<li><Link to="/other/foo">'foo'</Link></li>
+								<li><Link to="/not-a-real-link">'foo'</Link></li>
+								<li><Link to={TestTwo.createUrl({foo: 'foo'})}>'Test 2'</Link></li>
+								<li><Link to={TestThree.createUrl({bar: 'Bin'})}>'Test 3'</Link></li>
+							</ul>
+						</nav>
+					</header>
 
-				<Router>
-					<Home />
-					<Route to="/test">{_ -> Html.div()
-						.child(Home.link().child('Home'))
-						.child(TestThree.link({bar:'Froob'}).child('Froob'))
-						.child('Test')
-					}</Route>
-					// Note: `params` here are type checked!
-					<Route to="/other/{thing:String}">{params -> params.thing}</Route>
-					<TestTwo title="Test Two" />
-					<TestThree name="World" />
-					<fallback>{url -> <p>'No routes found for ' {url}</p>}</fallback>
-				</Router>
+					<Router>
+						<Home />
+						<Route to="/test">{_ -> Html.div()
+							.child(Home.link().child('Home'))
+							.child(TestThree.link({bar:'Froob'}).child('Froob'))
+							.child('Test')
+						}</Route>
+						// Note: `params` here are type checked!
+						<Route to="/other/{thing:String}">{params -> params.thing}</Route>
+						<TestTwo title="Test Two" />
+						<TestThree name="World" />
+						// Note: Router order matters! A catch-all route (a route with the path "*") 
+						// must come last or it will capture all routes.
+						<NotFoundRoute />
+					</Router>
+					// Handle all other errors that might come up. 
+					<fallback>
+						{(_, error) -> <ErrorView code=InternalError>{error.message}</ErrorView>}
+					</fallback>
+				</ErrorBoundary>
 			</main>))
 	);
 }
@@ -66,5 +77,27 @@ class TestThree extends RouteComponent<'/test3/{bar:String}'> {
 
 	function render():Child {
 		return Text.node('Hello ' + name + ' ' + bar());
+	}
+}
+
+class NotFoundRoute extends RouteComponent<'*'> {
+	function render() {
+		return ErrorView.node({
+			code: NotFound,
+			children: 'Route not found'
+		});
+	}
+}
+
+class ErrorView extends Component {
+	@:attribute final code:ErrorCode;
+	@:children @:attribute final children:Children;
+
+	function render() {
+		return Html.div()
+			.child(
+				Html.h3().child('Error: ${code}'),
+				children
+			);
 	}
 }

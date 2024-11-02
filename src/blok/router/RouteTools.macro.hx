@@ -57,6 +57,9 @@ function processRoute(url:String):RouteMeta {
 
 function normalizeUrl(url:String) {
 	url = url.normalize().trim();
+	if (url == '*') {
+		return url;
+	}
 	if (!url.startsWith('/')) {
 		url = '/' + url;
 	}

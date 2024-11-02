@@ -14,7 +14,12 @@ class RouteParser {
 
 	public function new(source:String) {
 		this.source = source.normalize();
-		parse();
+
+		if (source == '*') {
+			matcher = '.*';
+		} else {
+			parse();
+		}
 	}
 
 	public function getMatcher() {
