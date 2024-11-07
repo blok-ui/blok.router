@@ -1,5 +1,6 @@
 package blok.router;
 
+import blok.signal.Computation;
 import blok.context.Context;
 import blok.debug.Debug;
 import blok.router.navigation.*;
@@ -9,25 +10,20 @@ using Kit;
 
 @:fallback(error('Not found'))
 class Navigator implements Context {
-	public var path(get, never):String;
-
-	inline function get_path() return resolver.from(location());
-
-	public var location(get, never):ReadOnlySignal<Location>;
-
-	inline function get_location() return __location;
+	public final path:Computation<String>;
+	public final location:ReadOnlySignal<Location>;
 
 	final resolver:PathResolver;
 	final history:History;
-	final __location:Signal<Location>;
 
 	var link:Null<Cancellable>;
 
 	public function new(history, ?resolver:PathResolver) {
 		this.history = history;
 		this.resolver = resolver ?? new UrlPathResolver();
-		this.__location = new Signal(history.currentLocation());
-		this.link = history.subscribe(location -> __location.set(location));
+		this.location = new Signal(history.currentLocation());
+		this.path = new Computation(() -> resolver.from(this.location()));
+		this.link = history.subscribe(current -> (cast location : Signal<Location>).set(current));
 	}
 
 	public function go(path:String) {
@@ -36,5 +32,6 @@ class Navigator implements Context {
 
 	public function dispose() {
 		link.cancel();
+		path.dispose();
 	}
 }

@@ -4,6 +4,7 @@ import blok.core.Disposable;
 
 using Kit;
 
+// @todo: Probably remove ?state args and `replace` and `go` methods?
 interface History extends Disposable {
 	public function currentLocation():Location;
 	public function push(to:String, ?state:Dynamic):Void;

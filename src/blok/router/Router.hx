@@ -18,10 +18,7 @@ class Router extends Component {
 	}
 
 	function render():Child {
-		var nav = Navigator.from(this);
-		var path = nav.path;
-
-		trace(path);
+		var path = Navigator.from(this).path();
 
 		return switch routes.match(path) {
 			case Some(render):

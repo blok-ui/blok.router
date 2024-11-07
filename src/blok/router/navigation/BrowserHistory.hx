@@ -28,6 +28,8 @@ class BrowserHistory implements History {
 
 	public function currentLocation():Location {
 		Browser.window.location.extract(try {pathname: pathname, search: search, hash: hash});
+		if (search == '') search = null;
+		if (hash == '') hash = null;
 		return new Location({pathname: pathname, search: search, hash: hash?.replace('#', '')});
 	}
 

@@ -13,8 +13,8 @@ function main() {
 		() -> Provider
 			.provide(() -> new Navigator(
 				new BrowserHistory(),
-				new UrlPathResolver()
-					// new HashPathResolver(Browser.location.pathname)
+				// new UrlPathResolver()
+				new HashPathResolver(Browser.location.pathname)
 			))
 			.child(_ -> Html.view(<main>
 				<ErrorBoundary>
