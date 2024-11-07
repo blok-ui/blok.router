@@ -1,16 +1,21 @@
-import kit.Error.ErrorCode;
+import blok.boundary.ErrorBoundary;
 import blok.context.*;
 import blok.html.*;
 import blok.router.*;
+import blok.router.navigation.*;
 import blok.ui.*;
-import blok.boundary.ErrorBoundary;
 import js.Browser;
+import kit.Error.ErrorCode;
 
 function main() {
 	Client.mount(
 		Browser.document.getElementById('root'),
 		() -> Provider
-			.provide(() -> new Navigator({url: '/'}))
+			.provide(() -> new Navigator(
+				new BrowserHistory(),
+				new UrlPathResolver()
+					// new HashPathResolver(Browser.location.pathname)
+			))
 			.child(_ -> Html.view(<main>
 				<ErrorBoundary>
 					<header>
@@ -64,7 +69,7 @@ class TestTwo extends RouteComponent<'/test2/{foo:String}'> {
 	@:context final navigator:Navigator;
 
 	public function render():Child {
-		trace(navigator.url);
+		trace(navigator.location.peek().toString());
 		return Html.view(<div>
 			<h1>title</h1>
 			<p>"The current value is:" {foo()} " and also " {foobar()}</p>

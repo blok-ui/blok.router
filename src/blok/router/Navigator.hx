@@ -1,28 +1,40 @@
 package blok.router;
 
-import blok.data.Model;
 import blok.context.Context;
+import blok.debug.Debug;
+import blok.router.navigation.*;
+import blok.signal.Signal;
 
-@:fallback(instance())
-class Navigator extends Model implements Context {
-	public static function instance() {
-		static var navigator:Null<Navigator> = null;
-		if (navigator == null) navigator = new Navigator({url: '/'});
-		return navigator;
+using Kit;
+
+@:fallback(error('Not found'))
+class Navigator implements Context {
+	public var path(get, never):String;
+
+	inline function get_path() return resolver.from(location());
+
+	public var location(get, never):ReadOnlySignal<Location>;
+
+	inline function get_location() return __location;
+
+	final resolver:PathResolver;
+	final history:History;
+	final __location:Signal<Location>;
+
+	var link:Null<Cancellable>;
+
+	public function new(history, ?resolver:PathResolver) {
+		this.history = history;
+		this.resolver = resolver ?? new UrlPathResolver();
+		this.__location = new Signal(history.currentLocation());
+		this.link = history.subscribe(location -> __location.set(location));
 	}
 
-	@:signal public final url:String;
-
-	#if pine.client
-	function new() {
-		// @todo: Watch the browser for push/pop state
+	public function go(path:String) {
+		history.push(resolver.to(path));
 	}
-	#end
 
-	public function go(path) {
-		#if pine.client
-		// @todo: Push to the browser
-		#end
-		url.set(path);
+	public function dispose() {
+		link.cancel();
 	}
 }

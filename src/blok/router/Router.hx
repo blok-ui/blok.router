@@ -19,13 +19,15 @@ class Router extends Component {
 
 	function render():Child {
 		var nav = Navigator.from(this);
-		var url = nav.url();
+		var path = nav.path;
 
-		return switch routes.match(url) {
+		trace(path);
+
+		return switch routes.match(path) {
 			case Some(render):
 				return render();
 			case None:
-				throw new RouteNotFoundException(url, this);
+				throw new RouteNotFoundException(path, this);
 		}
 	}
 }
