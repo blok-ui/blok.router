@@ -10,13 +10,12 @@ import kit.Error.ErrorCode;
 function main() {
 	Client.mount(
 		Browser.document.getElementById('root'),
-		() -> Provider
-			.provide(() -> new Navigator(
+		Provider
+			.provide(new Navigator(
 				new BrowserHistory(),
-				// new UrlPathResolver()
 				new HashPathResolver(Browser.location.pathname)
 			))
-			.child(_ -> Html.view(<main>
+			.child(Html.view(<main>
 				<ErrorBoundary>
 					<header>
 						<Link to={Home.createUrl()}><h1>"Example"</h1></Link>
