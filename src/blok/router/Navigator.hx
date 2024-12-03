@@ -2,6 +2,7 @@ package blok.router;
 
 import blok.signal.Computation;
 import blok.context.Context;
+import blok.core.Owner;
 import blok.debug.Debug;
 import blok.router.navigation.*;
 import blok.signal.Signal;
@@ -15,14 +16,17 @@ class Navigator implements Context {
 
 	final resolver:PathResolver;
 	final history:History;
+	final owner:Owner = new Owner();
 
 	var link:Null<Cancellable>;
 
 	public function new(history, ?resolver:PathResolver) {
 		this.history = history;
 		this.resolver = resolver ?? new UrlPathResolver();
-		this.location = new Signal(history.currentLocation());
-		this.path = new Computation(() -> resolver.from(this.location()));
+		Owner.capture(owner, {
+			this.location = new Signal(history.currentLocation());
+			this.path = new Computation(() -> resolver.from(this.location()));
+		});
 		this.link = history.subscribe(current -> (cast location : Signal<Location>).set(current));
 	}
 
@@ -32,6 +36,6 @@ class Navigator implements Context {
 
 	public function dispose() {
 		link.cancel();
-		path.dispose();
+		owner.dispose();
 	}
 }
