@@ -54,13 +54,13 @@ function main() {
 	);
 }
 
-class Home extends RouteComponent<'/'> {
+class Home extends Page<'/'> {
 	function render() {
 		return Html.view(<div>'Home'</div>);
 	}
 }
 
-class TestTwo extends RouteComponent<'/test2/{foo:String}'> {
+class TestTwo extends Page<'/test2/{foo:String}'> {
 	@:attribute final title:String;
 	@:signal final testSignal:String = 'Ok';
 	@:computed final foobar:String = foo() + ' bar';
@@ -76,7 +76,7 @@ class TestTwo extends RouteComponent<'/test2/{foo:String}'> {
 	}
 }
 
-class TestThree extends RouteComponent<'/test3/{bar:String}'> {
+class TestThree extends Page<'/test3/{bar:String}'> {
 	@:attribute final name:String;
 
 	function render():Child {
@@ -84,7 +84,7 @@ class TestThree extends RouteComponent<'/test3/{bar:String}'> {
 	}
 }
 
-class NotFoundRoute extends RouteComponent<'*'> {
+class NotFoundRoute extends Page<'*'> {
 	function render() {
 		return ErrorView.node({
 			code: NotFound,

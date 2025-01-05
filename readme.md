@@ -12,15 +12,15 @@ class Routes extends Component {
     return Html.view(<Router>
       <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
       <Route to="/foo/{bar:String}">{params -> <p>{params.bar}</p>}</Route>
-      <fallback>{_ -> "Route not found"}</fallback>
+      <Route to="*">{_ -> "Route not found"}</Route>
     </Router>);
     // or:
     return Router.node({
       routes: [
         Route.to('/').renders(_ -> Html.p().child('This is the home route')),
-        Route.to('/foo/{bar:String}').renders(params -> Html.p().child(params.bar))
-      ],
-      fallback: _ -> "Route not found"
+        Route.to('/foo/{bar:String}').renders(params -> Html.p().child(params.bar)),
+        Route.to('*').renders(_ -> "Route not found")
+      ]
     });
   }
 }
@@ -28,28 +28,43 @@ class Routes extends Component {
 
 Use whichever you prefer.
 
-## RouteComponent
-
-A `RouteComponent` mixes the functionality of a `Route` and a `Component`, as its name might suggest. Here's a simple example:
+If a Router doesn't match a route, it will throw a RouteNotFoundException. This can be caught using an ErrorBoundary, or you can define a wildcard route (any route with a '*' path) to handle invalid URLs.
 
 ```haxe
-class HelloLocation extends RouteComponent<'/hello/{location:String}'> {
+// Using an ErrorBoundary:
+Html.view(<ErrorBoundary>
+  <Router>
+    <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
+  </Router>
+  <fallback>{e -> if (e is RouteNotFoundException) {
+    'Route not found';
+  else {
+    'Internal Error';
+  }}</fallback>
+</ErrorBoundary>);
+```
+
+## Page
+
+A `Page` mixes the functionality of a `Route` and a `Component`. Here's a simple example:
+
+```haxe
+class HelloLocation extends Page<'/hello/{location:String}'> {
   function render() {
     return Html.p()
       .child('Hello')
       // The "{location:String}" segment in the route is automatically 
-      // added to the RouteComponent as a signal, much as if you wrote
+      // added to the Page as a signal, much as if you wrote
       // `@:signal final location:String`.
       .child(location());
   }
 }
 ```
 
-Here's a more complex example from a notional blog site showing how `RouteComponents` can use standard Component features like `@:context` and `@:resource` and even `@:attribute`:
-
+Here's a more complex example from a notional blog site showing how `Pages` can use standard Component features like `@:context` and `@:resource` and even `@:attribute`:
 
 ```haxe
-class PostPage extends RouteComponent<'/post/{id:String}'> {
+class PostPage extends Page<'/post/{id:String}'> {
   @:attribute final category:String;
   @:context final posts:PostContext;
   @:resource final post = posts.get(category, id());
@@ -67,22 +82,20 @@ class PostPage extends RouteComponent<'/post/{id:String}'> {
 }
 ```
 
-RouteComponents can be registered using their `.route` static method or using the `view` macro.
+Pages can be registered using their `.route` static method or using the `view` macro.
 
 ```haxe
 Html.view(<Router>
   <HelloLocation />
   // Note that we need to set the `category` attribute here. 
   <PostPage category="default" />
-  <fallback>{_ -> "Route not found"}</fallback>
 </Router>);
 // Or:
 Router.node({
   routes: [
     HelloLocation.route({}),
     PostPage.route({category: 'default'})
-  ],
-  fallback: _ -> 'Route not found'
+  ]
 });
 ```
 
@@ -106,15 +119,14 @@ class Root extends Component {
           routes: [
             Route.to('/').renders(_ -> 'Home'),
             Route.to('/foo/{bar:String}').renders(props -> 'Foo ' + props.bar)
-          ],
-          fallback: _ -> 'Not found'
+          ]
         })
       ));
   }
 }
 ```
 
-No checks are done to ensure that your `Link` is actually pointed to a valid URL, which is not ideal. However Blok Router *does* have a solution for this, and all Routes and RouteComponents come with a `link` static method that will generate correct Links for you:
+No checks are done to ensure that your `Link` is actually pointed to a valid URL, which is not ideal. However Blok Router *does* have a solution for this, and all Routes and Pages come with a `link` static method that will generate correct Links for you:
 
 ```haxe
 typedef Home = Route<'/'>;
@@ -124,12 +136,12 @@ typedef FooBar = Route<'/foo/{bar:String}'>;
 Home.link().child('Home');
 FooBar.link({bar: 'Bar'}).child('Foo Bar');
 
-// Using the examples we wrote in the `RouteComponent` section:
+// Using the examples we wrote in the `Page` section:
 HelloLocation.link({location: 'World'}).child('Hello world');
 PostPage.link({id: 'first-post'}).child('First post');
 ```
 
-These methods unfortunately will not work with the `view` macro, but `Routes` and `RouteComponents` also have a `createUrl` method that can enforce some type safety:
+These methods unfortunately will not work with the `view` macro, but `Routes` and `Pages` also have a `createUrl` method that can enforce some type safety:
 
 ```haxe
 Html.view(<>
