@@ -1,7 +1,5 @@
 package blok.router;
 
-import blok.ui.*;
-
 /**
 	Use a Router to set up a place in your app that will change routes whenever
 	the Navigator's url signal updates.

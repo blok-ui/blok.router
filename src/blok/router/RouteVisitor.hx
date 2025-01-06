@@ -1,7 +1,6 @@
 package blok.router;
 
 import blok.debug.Debug;
-import blok.context.Context;
 
 @:fallback(error('No RouteVisitor found'))
 class RouteVisitor implements Context {

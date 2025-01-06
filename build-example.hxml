@@ -7,6 +7,7 @@
 
 --dce full
 
+-D message.reporting=pretty
 -D blok.client
 -D js-es=6
 -D analyzer-optimize

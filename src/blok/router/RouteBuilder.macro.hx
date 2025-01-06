@@ -74,7 +74,7 @@ function buildRoute(url:String) {
 	var fields = new ClassFieldCollection([]);
 	var route = url.processRoute();
 	var routeParamsType = route.paramsType;
-	var renderType = macro :(params:$routeParamsType) -> blok.ui.Child;
+	var renderType = macro :(params:$routeParamsType) -> blok.Child;
 
 	switch routeParamsType {
 		case TAnonymous(params) if (params.length == 0):
@@ -118,11 +118,11 @@ function buildRoute(url:String) {
 			return this;
 		}
 
-		public function match(url:String):kit.Maybe<() -> blok.ui.Child> {
+		public function match(url:String):kit.Maybe<() -> blok.Child> {
 			if (matcher.match(url)) {
 				return Some(() -> render
 					.map(render -> render(${route.paramsBuilder}))
-					.or(() -> blok.ui.Placeholder.node())
+					.or(() -> blok.Placeholder.node())
 				);
 			}
 			return None;

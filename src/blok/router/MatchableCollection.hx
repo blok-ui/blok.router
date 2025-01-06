@@ -1,8 +1,5 @@
 package blok.router;
 
-import blok.core.DisposableItem;
-import blok.ui.Child;
-
 using Kit;
 
 @:forward

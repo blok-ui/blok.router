@@ -1,6 +1,6 @@
 package blok.router;
 
-import blok.core.BlokException;
+import blok.BlokException;
 
 final class RouteNotFoundException extends BlokComponentException {
 	public final url:String;

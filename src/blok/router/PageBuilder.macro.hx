@@ -1,6 +1,6 @@
 package blok.router;
 
-import blok.ui.ComponentBuilder;
+import blok.ComponentBuilder;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
@@ -44,7 +44,7 @@ function buildPage(url:String) {
 			}
 		],
 		kind: TDClass({
-			pack: ['blok', 'ui'],
+			pack: ['blok'],
 			name: 'ProxyView'
 		}, [], false, false, true),
 		fields: []

@@ -1,15 +1,13 @@
 package blok.router;
 
-import blok.signal.Computation;
-import blok.context.Context;
-import blok.core.Owner;
 import blok.debug.Debug;
 import blok.router.navigation.*;
+import blok.signal.Computation;
 import blok.signal.Signal;
 
 using Kit;
 
-@:fallback(error('Not found'))
+@:fallback(error('No Navigator found'))
 class Navigator implements Context {
 	public final path:Computation<String>;
 	public final location:ReadOnlySignal<Location>;

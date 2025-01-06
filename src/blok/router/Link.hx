@@ -1,10 +1,9 @@
 package blok.router;
 
-import blok.html.HtmlAttributes.GlobalAttr;
+import blok.html.AttributeName;
 import blok.html.Html;
-import blok.html.HtmlAttributeName;
+import blok.html.HtmlAttributes;
 import blok.signal.Signal;
-import blok.ui.*;
 
 abstract Link({
 	public final url:String;
@@ -34,7 +33,7 @@ abstract Link({
 		};
 	}
 
-	public inline function attr(name:HtmlAttributeName, value:ReadOnlySignal<String>) {
+	public inline function attr(name:AttributeName<GlobalAttr>, value:ReadOnlySignal<String>) {
 		Reflect.setField(this.props, name, value);
 		return abstract;
 	}

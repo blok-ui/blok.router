@@ -1,9 +1,8 @@
-import blok.boundary.ErrorBoundary;
-import blok.context.*;
+import blok.*;
+import blok.ErrorBoundary;
 import blok.html.*;
 import blok.router.*;
 import blok.router.navigation.*;
-import blok.ui.*;
 import js.Browser;
 import kit.Error.ErrorCode;
 

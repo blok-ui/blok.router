@@ -1,7 +1,5 @@
 package blok.router.navigation;
 
-import blok.core.Disposable;
-
 using Kit;
 
 // @todo: Probably remove ?state args and `replace` and `go` methods?
