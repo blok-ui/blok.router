@@ -15,7 +15,7 @@ abstract Link({
 	@:fromMarkup
 	@:noUsing
 	@:noCompletion
-	public static function fromMarkup(props:GlobalAttr & {to:String}, ...children:Child) {
+	public static function fromMarkup(props:GlobalAttributes & {to:String}, ...children:Child) {
 		var url = Reflect.field(props, 'to');
 		Reflect.deleteField(props, 'to');
 		return new Link(url, props).child(...children).node();
@@ -33,7 +33,7 @@ abstract Link({
 		};
 	}
 
-	public inline function attr(name:AttributeName<GlobalAttr>, value:ReadOnlySignal<String>) {
+	public inline function attr(name:AttributeName<GlobalAttributes>, value:ReadOnlySignal<String>) {
 		Reflect.setField(this.props, name, value);
 		return abstract;
 	}
