@@ -9,6 +9,17 @@ using Kit;
 
 @:fallback(error('No Navigator found'))
 class Navigator implements Context {
+	public static function fromJson(json:{}) {
+		return new Navigator(
+			#if blok.client
+			new BrowserHistory(),
+			#else
+			new ServerHistory(),
+			#end
+			PathResolverFactory.createFromJson(Reflect.field(json, 'resolver'))
+		);
+	}
+
 	public final path:Computation<String>;
 	public final location:ReadOnlySignal<Location>;
 
@@ -30,6 +41,12 @@ class Navigator implements Context {
 
 	public function go(path:String) {
 		history.push(resolver.to(path));
+	}
+
+	public function toJson():{} {
+		return {
+			resolver: resolver.toJson()
+		};
 	}
 
 	public function dispose() {

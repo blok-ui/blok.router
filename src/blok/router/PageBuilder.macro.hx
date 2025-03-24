@@ -55,9 +55,7 @@ function buildPage(url:String) {
 
 function build(url:String) {
 	return ClassBuilder.fromContext()
-		.addBundle(new ComponentBuilder({
-			createFromMarkupMethod: false
-		}))
+		.addBundle(new ComponentBuilder({createFromMarkupMethod: false}))
 		.addStep(new PageBuilder(url))
 		.addStep(new RouteConstructorBuildStep(url))
 		.export();

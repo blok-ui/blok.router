@@ -10,8 +10,8 @@ abstract MatchableCollection(Array<Matchable>) from Array<Matchable> {
 
 	public function match(path:String):Maybe<() -> Child> {
 		for (matchable in this) switch matchable.match(path) {
-			case Some(value): return Some(value);
 			case None:
+			case matched: return matched;
 		}
 		return None;
 	}

@@ -10,4 +10,10 @@ class UrlPathResolver implements PathResolver {
 	public function to(path:String):Location {
 		return path;
 	}
+
+	public function toJson():{} {
+		return {
+			type: 'UrlPathResolver'
+		}
+	}
 }

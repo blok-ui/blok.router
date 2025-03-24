@@ -17,4 +17,11 @@ class HashPathResolver implements PathResolver {
 	public function to(path:String):Location {
 		return new Location({pathname: pathname, hash: path});
 	}
+
+	public function toJson():{} {
+		return {
+			type: 'HashPathResolver',
+			pathname: pathname
+		}
+	}
 }

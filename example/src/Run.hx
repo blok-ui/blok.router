@@ -40,7 +40,7 @@ function main() {
 						<Route to="/other/{thing:String}">{params -> params.thing}</Route>
 						<TestTwo title="Test Two" />
 						<TestThree name="World" />
-						// Note: Router order matters! A catch-all route (a route with the path "*") 
+						// Note: Route order matters! A catch-all route (a route with the path "*") 
 						// must come last or it will capture all routes.
 						<NotFoundRoute />
 					</Router>
