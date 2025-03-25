@@ -1,0 +1,12 @@
+{
+  "name": "blok.router",
+  "description": "Routing for Blok",
+  "license": "MIT",
+  "classPath": "src",
+  "version": "0.0.1",
+  "releasenote": "Prerelease",
+  "contributors": ["wartman"],
+  "dependencies": {
+    "blok.core": "0.10.0-alpha.1"
+  }
+}

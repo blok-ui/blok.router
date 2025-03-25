@@ -79,7 +79,9 @@ class TestThree extends Page<'/test3/{bar:String}'> {
 	@:attribute final name:String;
 
 	function render():Child {
-		return Text.node('Hello ' + name + ' ' + bar());
+		return Html.div()
+			.child(Html.h1().child('Test Three'))
+			.child(Text.node('Hello ' + name + ' ' + bar()));
 	}
 }
 

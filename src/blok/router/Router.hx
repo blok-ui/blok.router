@@ -20,7 +20,7 @@ class Router extends Component {
 
 		return switch routes.match(path) {
 			case Some(render):
-				return render();
+				render();
 			case None:
 				throw new RouteNotFoundException(path, this);
 		}
