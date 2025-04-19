@@ -2,7 +2,7 @@ package blok.router;
 
 import blok.BlokException;
 
-final class RouteNotFoundException extends BlokComponentException {
+final class RouteNotFoundException extends BlokViewException {
 	public final url:String;
 
 	public function new(url, component) {
