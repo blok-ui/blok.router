@@ -45,7 +45,7 @@ function buildPage(url:String) {
 		],
 		kind: TDClass({
 			pack: ['blok'],
-			name: 'ProxyView'
+			name: 'ComposableView'
 		}, [], false, false, true),
 		fields: []
 	});
