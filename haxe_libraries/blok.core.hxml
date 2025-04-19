@@ -1,4 +1,4 @@
-# @install: lix --silent download "gh://github.com/blok-ui/blok.core#7b04f5bbe020d7082341cc2c7c8c97d193b424e3" into blok.core/0.10.0-alpha.1/github/7b04f5bbe020d7082341cc2c7c8c97d193b424e3
+# @install: lix --silent download "gh://github.com/blok-ui/blok.core#8dddfd362024b3047356c16eeff8d71b842674df" into blok.core/0.11.0-alpha.1/github/8dddfd362024b3047356c16eeff8d71b842674df
 -lib kit
--cp ${HAXE_LIBCACHE}/blok.core/0.10.0-alpha.1/github/7b04f5bbe020d7082341cc2c7c8c97d193b424e3/src
--D blok.core=0.10.0-alpha.1
+-cp ${HAXE_LIBCACHE}/blok.core/0.11.0-alpha.1/github/8dddfd362024b3047356c16eeff8d71b842674df/src
+-D blok.core=0.11.0-alpha.1
