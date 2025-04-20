@@ -49,52 +49,32 @@ abstract Link({
 
 	@:to
 	public function node():Child {
-		return LinkWrapper.node({
-			url: this.url,
-			child: context -> {
-				var node = Html.a()
-					.attr('href', this.url)
-					.child(this.children);
+		return Scope.wrap(context -> {
+			var node = Html.a()
+				.attr('href', this.url)
+				.child(this.children);
 
-				for (prop in Reflect.fields(this.props)) {
-					node.attr(prop, Reflect.field(this.props, prop));
-				}
-
-				switch Navigator.maybeFrom(context) {
-					case Some(nav):
-						// @todo: This needs to be configurable -- we won't
-						// always want to intercept it.
-						node.on(Click, e -> {
-							e.preventDefault();
-							nav.go(this.url);
-						});
-					case None:
-				}
-
-				return node;
+			for (prop in Reflect.fields(this.props)) {
+				node.attr(prop, Reflect.field(this.props, prop));
 			}
+
+			switch Navigator.maybeFrom(context) {
+				case Some(nav):
+					// @todo: This needs to be configurable -- we won't
+					// always want to intercept it.
+					node.on(Click, e -> {
+						e.preventDefault();
+						nav.go(this.url);
+					});
+				case None:
+			}
+
+			return node;
 		});
 	}
 
 	@:to
 	public inline function toChildren():Children {
 		return node();
-	}
-}
-
-class LinkWrapper extends Component {
-	@:attribute final url:String;
-	@:attribute final child:(context:View) -> Child;
-
-	#if !blok.client
-	function setup() {
-		RouteVisitor
-			.maybeFrom(this)
-			.inspect(visitor -> visitor.enqueue(url));
-	}
-	#end
-
-	function render() {
-		return child(this);
 	}
 }
