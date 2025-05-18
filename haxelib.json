@@ -3,10 +3,10 @@
   "description": "Routing for Blok",
   "license": "MIT",
   "classPath": "src",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.1",
   "releasenote": "Prerelease",
   "contributors": ["wartman"],
   "dependencies": {
-    "blok.core": "0.10.0-alpha.1"
+    "blok.core": "0.12.0-alpha.1"
   }
 }

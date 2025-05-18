@@ -1,5 +1,7 @@
 package blok.router;
 
+import blok.core.*;
+
 using Kit;
 
 @:forward

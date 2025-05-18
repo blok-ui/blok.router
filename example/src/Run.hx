@@ -46,7 +46,7 @@ function main() {
 					</Router>
 					// Handle all other errors that might come up. 
 					<fallback>
-						{(_, error) -> <ErrorView code=InternalError>{error.message}</ErrorView>}
+						{(error) -> <ErrorView code=InternalError>{error.message}</ErrorView>}
 					</fallback>
 				</ErrorBoundary>
 			</main>))

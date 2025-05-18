@@ -1,12 +1,12 @@
 package blok.router;
 
-import blok.BlokException;
+import haxe.Exception;
 
-final class RouteNotFoundException extends BlokViewException {
+final class RouteNotFoundException extends Exception {
 	public final url:String;
 
-	public function new(url, component) {
-		super('Route not found', component);
+	public function new(url) {
+		super('Route not found');
 		this.url = url;
 	}
 }

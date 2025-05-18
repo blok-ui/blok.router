@@ -22,7 +22,7 @@ class Router extends Component {
 			case Some(render):
 				render();
 			case None:
-				throw new RouteNotFoundException(path, this);
+				throw new RouteNotFoundException(path);
 		}
 	}
 }

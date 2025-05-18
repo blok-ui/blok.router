@@ -44,8 +44,9 @@ function buildPage(url:String) {
 			}
 		],
 		kind: TDClass({
-			pack: ['blok'],
-			name: 'ComposableView'
+			pack: ['blok', 'router'],
+			name: 'Page',
+			sub: 'PageState'
 		}, [], false, false, true),
 		fields: []
 	});

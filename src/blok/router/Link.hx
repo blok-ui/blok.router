@@ -1,5 +1,6 @@
 package blok.router;
 
+import blok.engine.FragmentNode;
 import blok.html.AttributeName;
 import blok.html.Html;
 import blok.html.HtmlAttributes;
@@ -39,8 +40,8 @@ abstract Link({
 	}
 
 	public inline function child(...children:Child) {
-		for (child in children) if (child.type == Fragment.componentType) {
-			abstract.child(...child.getProps().children);
+		for (child in children) if (child is FragmentNode) {
+			abstract.child(...(cast child : FragmentNode).children);
 		} else {
 			this.children.push(child);
 		}

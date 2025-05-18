@@ -1,6 +1,6 @@
 package blok.router;
 
-import blok.*;
+import blok.core.*;
 
 using Kit;
 

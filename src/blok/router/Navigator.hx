@@ -1,5 +1,6 @@
 package blok.router;
 
+import blok.core.*;
 import blok.debug.Debug;
 import blok.router.navigation.*;
 import blok.signal.Computation;
