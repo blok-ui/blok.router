@@ -11,14 +11,14 @@ class Routes extends Component {
   function render() {
     return Html.view(<Router>
       <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
-      <Route to="/foo/{bar:String}">{params -> <p>{params.bar}</p>}</Route>
+      <Route to="/foo/:bar">{params -> <p>{params.bar}</p>}</Route>
       <Route to="*">{_ -> "Route not found"}</Route>
     </Router>);
     // or:
     return Router.node({
       routes: [
         Route.to('/').renders(_ -> Html.p().child('This is the home route')),
-        Route.to('/foo/{bar:String}').renders(params -> Html.p().child(params.bar)),
+        Route.to('/foo/:bar').renders(params -> Html.p().child(params.bar)),
         Route.to('*').renders(_ -> "Route not found")
       ]
     });
@@ -44,16 +44,29 @@ Html.view(<ErrorBoundary>
 </ErrorBoundary>);
 ```
 
+Routes use a simple syntax that should be familiar if you've used any similar libraries. Here's a quick overview:
+
+```haxe
+// A route with no params:
+"foo/bar";
+// A route with required params:
+"foo/:bar/bin";
+// A route with an optional segment:
+"foo/(optional/:bar)/:etc";
+```
+
+> Note: this syntax is currently undergoing changes and is too unstable to document right now. Use at your own risk. 
+
 ## Page
 
 A `Page` mixes the functionality of a `Route` and a `Component`. Here's a simple example:
 
 ```haxe
-class HelloLocation extends Page<'/hello/{location:String}'> {
+class HelloLocation extends Page<'/hello/:location'> {
   function render() {
     return Html.p()
       .child('Hello')
-      // The "{location:String}" segment in the route is automatically 
+      // The ":location" segment in the route is automatically 
       // added to the Page as a signal, much as if you wrote
       // `@:signal final location:String`.
       .child(location());
@@ -64,7 +77,7 @@ class HelloLocation extends Page<'/hello/{location:String}'> {
 Here's a more complex example from a notional blog site showing how `Pages` can use standard Component features like `@:context` and `@:resource` and even `@:attribute`:
 
 ```haxe
-class PostPage extends Page<'/post/{id:String}'> {
+class PostPage extends Page<'/post/:id'> {
   @:attribute final category:String;
   @:context final posts:PostContext;
   @:resource final post = posts.get(category, id());
@@ -130,7 +143,7 @@ No checks are done to ensure that your `Link` is actually pointed to a valid URL
 
 ```haxe
 typedef Home = Route<'/'>;
-typedef FooBar = Route<'/foo/{bar:String}'>;
+typedef FooBar = Route<'/foo/:bar'>;
 
 // Creating links from the above:
 Home.link().child('Home');

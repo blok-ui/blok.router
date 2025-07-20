@@ -1,0 +1,7 @@
+test-common.hxml
+
+-D js-es=6
+
+-js dist/test.js
+
+-cmd node dist/test

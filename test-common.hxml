@@ -1,0 +1,11 @@
+-cp src
+-cp test
+
+--dce full
+
+-D analyzer-optimize
+-D message.reporting=pretty
+
+-lib blok.core
+
+-main Run

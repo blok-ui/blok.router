@@ -4,14 +4,15 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
 
-using blok.router.RouteTools;
+// using blok.router.RouteTools;
+using blok.router.parse.Compiler;
 using kit.Hash;
 using kit.macro.Tools;
 
 function buildGeneric() {
 	return switch Context.getLocalType() {
-		case TInst(_, [TInst(_.get() => {kind: KExpr(macro $v{(url : String)})}, _)]):
-			buildRoute(url.normalizeUrl());
+		case TInst(_, [TInst(_.get() => {kind: KExpr(expr)}, _)]):
+			buildRoute(expr);
 		case TInst(_, []) | TInst(_, [TMono(_)]):
 			buildBaseRoute();
 		default:
@@ -38,8 +39,7 @@ function buildBaseRoute() {
 		}
 
 		public macro static function to(path) {
-			var url = kit.macro.Tools.extractString(path);
-			var route = switch blok.router.RouteBuilder.buildRoute(url) {
+			var route = switch blok.router.RouteBuilder.buildRoute(path) {
 				case TPath(path):
 					return macro new $path();
 				default:
@@ -62,8 +62,8 @@ function buildBaseRoute() {
 	return TPath(path);
 }
 
-function buildRoute(url:String) {
-	var suffix = url.hash();
+function buildRoute(expr:Expr) {
+	var suffix = expr.extractString().hash();
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
 	var name = 'Route_${suffix}';
@@ -72,8 +72,8 @@ function buildRoute(url:String) {
 	if (path.typePathExists()) return TPath(path);
 
 	var fields = new ClassFieldCollection([]);
-	var route = url.processRoute();
-	var routeParamsType = route.paramsType;
+	var route = expr.extractString().compilePath(expr.pos);
+	var routeParamsType = route.params;
 	var renderType = macro :(params:$routeParamsType) -> blok.Child;
 
 	switch routeParamsType {
@@ -81,7 +81,7 @@ function buildRoute(url:String) {
 			fields.add(macro class {
 				public static function createUrl():String {
 					var props = {};
-					return ${route.urlBuilder};
+					return ${route.pathBuilder};
 				}
 
 				public static function link() {
@@ -91,7 +91,7 @@ function buildRoute(url:String) {
 		default:
 			fields.add(macro class {
 				public static function createUrl(props:$routeParamsType):String {
-					return ${route.urlBuilder};
+					return ${route.pathBuilder};
 				}
 
 				public static function link(props:$routeParamsType) {
@@ -101,7 +101,7 @@ function buildRoute(url:String) {
 	}
 
 	fields.add(macro class {
-		static final matcher = ${route.matcher};
+		static final matcher = ${route.pathMatcher};
 
 		public inline static function route(render):blok.router.Matchable {
 			return new $path(render);
@@ -119,13 +119,11 @@ function buildRoute(url:String) {
 		}
 
 		public function match(url:String):kit.Maybe<() -> blok.Child> {
-			if (matcher.match(url)) {
-				return Some(() -> render
-					.map(render -> render(${route.paramsBuilder}))
-					.or(() -> blok.Placeholder.node())
-				);
-			}
-			return None;
+			return matcher.match(url).map(params -> {
+				render
+					.map(render -> () -> render(params))
+					.or(() -> blok.Placeholder.node());
+			});
 		}
 
 		public function dispose() {}

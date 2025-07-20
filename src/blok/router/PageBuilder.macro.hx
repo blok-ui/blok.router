@@ -7,22 +7,25 @@ import kit.macro.*;
 
 using Lambda;
 using blok.macro.Tools;
-using blok.router.RouteTools;
+using blok.router.parse.Compiler;
 using haxe.macro.Tools;
 using kit.Hash;
 using kit.macro.Tools;
 
 function buildGeneric() {
 	return switch Context.getLocalType() {
-		case TInst(_, [TInst(_.get() => {kind: KExpr(macro $v{(url : String)})}, _)]):
-			buildPage(url.normalizeUrl());
+		case TInst(_, [
+			TInst(_.get() => {
+				kind: KExpr(expr)
+			}, _)]):
+				buildPage(expr);
 		default:
 			throw 'assert';
 	}
 }
 
-function buildPage(url:String) {
-	var suffix = url.hash();
+function buildPage(expr:Expr) {
+	var suffix = expr.extractString().hash();
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
 	var name = 'Page_${suffix}';
@@ -39,7 +42,7 @@ function buildPage(url:String) {
 		meta: [
 			{
 				name: ':autoBuild',
-				params: [macro blok.router.PageBuilder.build($v{url})],
+				params: [macro blok.router.PageBuilder.build(${expr})],
 				pos: (macro null).pos
 			}
 		],
@@ -54,11 +57,11 @@ function buildPage(url:String) {
 	return TPath(path);
 }
 
-function build(url:String) {
+function build(url:Expr) {
 	return ClassBuilder.fromContext()
 		.addBundle(new ComponentBuilder({createFromMarkupMethod: false}))
 		.addStep(new PageBuilder(url))
-		.addStep(new RouteConstructorBuildStep(url))
+		.addStep(new RouteConstructorBuildStep(url.extractString()))
 		.export();
 }
 
@@ -68,15 +71,15 @@ class PageBuilder implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final url:String;
-	final route:RouteMeta;
+	final route:CompilerResult;
 
-	public function new(url) {
-		this.url = url;
-		this.route = url.processRoute();
+	public function new(expr:Expr) {
+		this.url = expr.extractString();
+		this.route = url.compilePath(expr.pos);
 	}
 
 	public function apply(builder:ClassBuilder) {
-		switch route.paramsType {
+		switch route.params {
 			case TAnonymous(fields):
 				for (field in fields) {
 					var name = field.name;
@@ -114,15 +117,15 @@ class RouteConstructorBuildStep implements BuildStep {
 	public final priority:Priority = Late;
 
 	final url:String;
-	final route:RouteMeta;
+	final route:CompilerResult;
 
 	public function new(url) {
 		this.url = url;
-		this.route = url.processRoute();
+		this.route = url.compilePath();
 	}
 
 	public function apply(builder:ClassBuilder) {
-		var routeParamsType = route.paramsType;
+		var routeParamsType = route.params;
 		var componentPath = builder.getTypePath();
 		var router = builder.hook(RouterProps).getProps();
 		var init = builder.hook(Init);
@@ -163,7 +166,7 @@ class RouteConstructorBuildStep implements BuildStep {
 				builder.add(macro class {
 					public static function createUrl():String {
 						var props = {};
-						return ${route.urlBuilder};
+						return ${route.pathBuilder};
 					}
 
 					public static function link() {
@@ -173,7 +176,7 @@ class RouteConstructorBuildStep implements BuildStep {
 			default:
 				builder.add(macro class {
 					public static function createUrl(props:$routeParamsType):String {
-						return ${route.urlBuilder};
+						return ${route.pathBuilder};
 					}
 
 					public static function link(props:$routeParamsType) {

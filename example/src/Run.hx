@@ -37,7 +37,7 @@ function main() {
 							.child('Test')
 						}</Route>
 						// Note: `params` here are type checked!
-						<Route to="/other/{thing:String}">{params -> params.thing}</Route>
+						<Route to="/other/:thing">{params -> params.thing}</Route>
 						<TestTwo title="Test Two" />
 						<TestThree name="World" />
 						// Note: Route order matters! A catch-all route (a route with the path "*") 
@@ -59,7 +59,7 @@ class Home extends Page<'/'> {
 	}
 }
 
-class TestTwo extends Page<'/test2/{foo:String}'> {
+class TestTwo extends Page<'/test2/:foo'> {
 	@:attribute final title:String;
 	@:signal final testSignal:String = 'Ok';
 	@:computed final foobar:String = foo() + ' bar';
@@ -75,7 +75,7 @@ class TestTwo extends Page<'/test2/{foo:String}'> {
 	}
 }
 
-class TestThree extends Page<'/test3/{bar:String}'> {
+class TestThree extends Page<'/test3/:bar'> {
 	@:attribute final name:String;
 
 	function render():Child {
