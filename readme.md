@@ -10,17 +10,19 @@ Defining routes is simple, and can be done using Blok's `view` macro or vanilla 
 class Routes extends Component {
   function render() {
     return Html.view(<Router>
-      <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
-      <Route to="/foo/:bar">{params -> <p>{params.bar}</p>}</Route>
-      <Route to="*">{_ -> "Route not found"}</Route>
+      <Match>
+        <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
+        <Route to="/foo/:bar">{params -> <p>{params.bar}</p>}</Route>
+        <Route to="*">{_ -> "Route not found"}</Route>
+      </Match>
     </Router>);
     // or:
     return Router.node({
-      routes: [
+      children: Match.wrap([
         Route.to('/').renders(_ -> Html.p().child('This is the home route')),
         Route.to('/foo/:bar').renders(params -> Html.p().child(params.bar)),
         Route.to('*').renders(_ -> "Route not found")
-      ]
+      ])
     });
   }
 }
@@ -32,16 +34,18 @@ If a Router doesn't match a route, it will throw a RouteNotFoundException. This 
 
 ```haxe
 // Using an ErrorBoundary:
-Html.view(<ErrorBoundary>
-  <Router>
-    <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
-  </Router>
-  <fallback>{e -> if (e is RouteNotFoundException) {
-    'Route not found';
-  else {
-    'Internal Error';
-  }}</fallback>
-</ErrorBoundary>);
+Html.view(<Router>
+  <ErrorBoundary>
+    <Match>
+      <Route to="/">{_ -> <p>"This is the home route"</p>}</Route>
+    </Match>
+    <fallback>{e -> if (e is RouteNotFoundException) {
+      'Route not found';
+    else {
+      'Internal Error';
+    }}</fallback>
+  </ErrorBoundary>
+</Router>);
 ```
 
 Routes use a simple syntax that should be familiar if you've used any similar libraries. Here's a quick overview:
@@ -99,16 +103,18 @@ Pages can be registered using their `.route` static method or using the `view` m
 
 ```haxe
 Html.view(<Router>
-  <HelloLocation />
-  // Note that we need to set the `category` attribute here. 
-  <PostPage category="default" />
+  <Match>
+    <HelloLocation />
+    // Note that we need to set the `category` attribute here. 
+    <PostPage category="default" />
+  </Match>
 </Router>);
 // Or:
 Router.node({
-  routes: [
+  children: Match.wrap([
     HelloLocation.route({}),
     PostPage.route({category: 'default'})
-  ]
+  ])
 });
 ```
 
@@ -128,12 +134,10 @@ class Root extends Component {
           // Using the view macro:
           Html.view(<Link to="/foo/bin">'Foo Bin'</Link>)
         ),
-        Router.node({
-          routes: [
-            Route.to('/').renders(_ -> 'Home'),
-            Route.to('/foo/{bar:String}').renders(props -> 'Foo ' + props.bar)
-          ]
-        })
+        Match.wrap([
+          Route.to('/').renders(_ -> 'Home'),
+          Route.to('/foo/{bar:String}').renders(props -> 'Foo ' + props.bar)
+        ])
       ));
   }
 }

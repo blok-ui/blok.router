@@ -10,6 +10,12 @@ import haxe.io.Path;
 	own `Match` works the same as `Router`.
 **/
 class Match extends Component {
+	public inline static function wrap(routes) {
+		return node({
+			routes: routes
+		});
+	}
+
 	@:children @:attribute final routes:MatchableCollection;
 
 	function setup() {

@@ -1,6 +1,5 @@
 package blok.router;
 
-import blok.debug.Debug;
 import blok.router.navigation.*;
 import blok.signal.Computation;
 import blok.signal.Signal;
@@ -8,14 +7,7 @@ import blok.signal.Signal;
 using Kit;
 
 @:allow(blok.router)
-@:fallback(new Navigator(
-	#if blok.client
-	new BrowserHistory(),
-	#else
-	new ServerHistory(),
-	#end
-	new UrlPathResolver()
-))
+@:fallback(createDefault())
 class Navigator implements Context {
 	public static function fromJson(json:{}) {
 		return new Navigator(
@@ -25,6 +17,17 @@ class Navigator implements Context {
 			new ServerHistory(),
 			#end
 			PathResolverFactory.createFromJson(Reflect.field(json, 'resolver'))
+		);
+	}
+
+	public static function createDefault() {
+		return new Navigator(
+			#if blok.client
+			new BrowserHistory(),
+			#else
+			new ServerHistory(),
+			#end
+			new UrlPathResolver()
 		);
 	}
 

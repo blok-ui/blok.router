@@ -6,7 +6,7 @@ class Router extends Component {
 
 	function render():Child {
 		return Provider.provide(
-			navigator ?? Navigator.from(this)
+			navigator ?? Navigator.createDefault()
 		).child(children);
 	}
 }
