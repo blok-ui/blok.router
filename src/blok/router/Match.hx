@@ -7,7 +7,7 @@ import haxe.io.Path;
 
 	`Match` is context aware -- if used inside a Route it will
 	match routes relative to the current path. If used on its
-	own `Match` works the same as `Router`.
+	own `Match` will use the current Navigator.
 **/
 class Match extends Component {
 	public inline static function wrap(routes) {
@@ -25,7 +25,7 @@ class Match extends Component {
 	public function render():Child {
 		return switch RouteView.maybeFrom(this) {
 			case Some(route):
-				var match = RouteView.from(this).match();
+				var match = route.match();
 				return switch routes.match(match.remainder) {
 					case Some(child):
 						child;
