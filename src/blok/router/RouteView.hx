@@ -64,7 +64,7 @@ class RouteView<Params:{}> implements View {
 	}
 
 	function render() {
-		return node.render(node.match);
+		return Scope.wrap(_ -> node.render(node.match));
 	}
 
 	public function insert(cursor:Cursor, ?hydrate:Bool):Result<View, ViewError> {
