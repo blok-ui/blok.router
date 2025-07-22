@@ -82,7 +82,7 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 		return Html.div()
 			.child(Html.h1().child('Test Three'))
 			.child(Text.node('Hello ' + name + ' ' + bar()))
-			.child(Group.node({
+			.child(Match.node({
 				routes: [
 					Route.to('more').renders(_ -> 'More'),
 					Route.to('*').renders(_ -> Html.div().child(
