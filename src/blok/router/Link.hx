@@ -53,9 +53,10 @@ abstract Link({
 	@:to
 	public function node():Child {
 		return Scope.wrap(context -> {
-			var node = Html.a()
-				.attr('href', this.url)
-				.child(this.children);
+			var fullUrl = RouteView
+				.getFullPathFromRelativePath(context, this.url)
+				.or(() -> this.url);
+			var node = Html.a().child(this.children);
 
 			for (prop in Reflect.fields(this.props)) {
 				node.attr(prop, Reflect.field(this.props, prop));
@@ -67,9 +68,13 @@ abstract Link({
 					// always want to intercept it.
 					node.on(Click, e -> {
 						e.preventDefault();
-						nav.go(this.url);
+						nav.go(fullUrl);
 					});
+					// Convert from the Router's path to the actual one.
+					var path = nav.resolver.to(fullUrl).toString();
+					node.attr('href', path);
 				case None:
+					node.attr('href', fullUrl);
 			}
 
 			return node;

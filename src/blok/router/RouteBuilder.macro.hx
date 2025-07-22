@@ -117,12 +117,12 @@ function buildRoute(expr:Expr) {
 			return this;
 		}
 
-		public function match(url:String):kit.Maybe<() -> blok.Child> {
+		public function match(url:String):kit.Maybe<blok.Child> {
 			// @todo: This is super inefficient.
 			return matcher.match(url).map(match -> {
 				render
-					.map(render -> () -> render(match.params))
-					.or(() -> () -> blok.Placeholder.node());
+					.map(render -> (new blok.router.RouteNode(match, match -> render(match.params)) : blok.Child))
+					.or(() -> blok.Placeholder.node());
 			});
 		}
 

@@ -1,6 +1,5 @@
 package blok.router;
 
-import blok.core.*;
 import blok.debug.Debug;
 import blok.router.navigation.*;
 import blok.signal.Computation;
@@ -8,6 +7,7 @@ import blok.signal.Signal;
 
 using Kit;
 
+@:allow(blok.router)
 @:fallback(error('No Navigator found'))
 class Navigator implements Context {
 	public static function fromJson(json:{}) {

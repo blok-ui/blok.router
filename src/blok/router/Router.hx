@@ -13,10 +13,9 @@ class Router extends Component {
 
 	function render():Child {
 		var path = Navigator.from(this).path();
-
 		return switch routes.match(path) {
-			case Some(render):
-				render();
+			case Some(child):
+				child;
 			case None:
 				throw new RouteNotFoundException(path);
 		}

@@ -81,8 +81,17 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 	function render():Child {
 		return Html.div()
 			.child(Html.h1().child('Test Three'))
-			.child(Text.node('Hello ' + name + ' ' + bar()));
-		// @todo: add some sub-routes once we figure that part out.
+			.child(Text.node('Hello ' + name + ' ' + bar()))
+			.child(Group.node({
+				routes: [
+					Route.to('more').renders(_ -> 'More'),
+					Route.to('*').renders(_ -> Html.div().child(
+						// Paths that are not absolute will link relative to
+						// the current route
+						Link.to('more').child('This is a sub route')
+					))
+				]
+			}));
 	}
 }
 

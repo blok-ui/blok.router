@@ -84,8 +84,6 @@ private function createPathBuilder(segments:Array<PathSegment>):Expr {
 			parts.push(macro $v{value});
 		case DynamicSegment(key, _):
 			parts.push(macro Std.string(props.$key));
-		case SplatSegment(key):
-			// @todo
 		case OptionalSegment(segments):
 			var expr = createPathBuilder(segments);
 			var infos = getParamInfo(segments, true);
@@ -106,9 +104,10 @@ private function createPathBuilder(segments:Array<PathSegment>):Expr {
 			} else {
 				parts.push(expr);
 			}
+		default:
 	}
 
-	return macro [$a{parts}].filter(part -> part != null).join('/');
+	return macro '/' + [$a{parts}].filter(part -> part != null).join('/');
 }
 
 private function createPathMatcher(segments:Array<PathSegment>, paramsType:ComplexType) {
