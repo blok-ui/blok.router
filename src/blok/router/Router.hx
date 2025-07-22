@@ -3,10 +3,6 @@ package blok.router;
 /**
 	Use a Router to set up a place in your app that will change routes whenever
 	the Navigator's url signal updates.
-
-	The Router will throw a `blok.router.RouteNotFoundException` whenever a 
-	matching route is not found. You can handle this via an `ErrorBoundary`
-	or you can provide a catch-all route to handle routes that aren't found.
 **/
 class Router extends Component {
 	@:children @:attribute final routes:MatchableCollection;

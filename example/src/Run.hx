@@ -75,13 +75,14 @@ class TestTwo extends Page<'/test2/:foo'> {
 	}
 }
 
-class TestThree extends Page<'/test3/:bar'> {
+class TestThree extends Page<'/test3/:bar/*more'> {
 	@:attribute final name:String;
 
 	function render():Child {
 		return Html.div()
 			.child(Html.h1().child('Test Three'))
 			.child(Text.node('Hello ' + name + ' ' + bar()));
+		// @todo: add some sub-routes once we figure that part out.
 	}
 }
 

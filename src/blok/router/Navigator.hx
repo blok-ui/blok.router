@@ -26,18 +26,16 @@ class Navigator implements Context {
 
 	final resolver:PathResolver;
 	final history:History;
-	final owner:Owner = new Owner();
 
 	var link:Null<Cancellable>;
 
 	public function new(history, ?resolver:PathResolver) {
+		var location = new Signal(history.currentLocation());
 		this.history = history;
 		this.resolver = resolver ?? new UrlPathResolver();
-		Owner.capture(owner, {
-			this.location = new Signal(history.currentLocation());
-			this.path = new Computation(() -> resolver.from(this.location()));
-		});
-		this.link = history.subscribe(current -> (cast location : Signal<Location>).set(current));
+		this.location = location;
+		this.path = new Computation(() -> resolver.from(this.location()));
+		this.link = history.subscribe(current -> location.set(current));
 	}
 
 	public function go(path:String) {
@@ -52,6 +50,5 @@ class Navigator implements Context {
 
 	public function dispose() {
 		link.cancel();
-		owner.dispose();
 	}
 }

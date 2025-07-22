@@ -4,8 +4,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
 
-// using blok.router.RouteTools;
-using blok.router.parse.Compiler;
+using blok.router.path.PathFactory;
 using kit.Hash;
 using kit.macro.Tools;
 
@@ -72,8 +71,8 @@ function buildRoute(expr:Expr) {
 	if (path.typePathExists()) return TPath(path);
 
 	var fields = new ClassFieldCollection([]);
-	var route = expr.extractString().compilePath(expr.pos);
-	var routeParamsType = route.params;
+	var factory = expr.buildPath();
+	var routeParamsType = factory.params;
 	var renderType = macro :(params:$routeParamsType) -> blok.Child;
 
 	switch routeParamsType {
@@ -81,7 +80,7 @@ function buildRoute(expr:Expr) {
 			fields.add(macro class {
 				public static function createUrl():String {
 					var props = {};
-					return ${route.pathBuilder};
+					return ${factory.pathBuilder};
 				}
 
 				public static function link() {
@@ -91,7 +90,7 @@ function buildRoute(expr:Expr) {
 		default:
 			fields.add(macro class {
 				public static function createUrl(props:$routeParamsType):String {
-					return ${route.pathBuilder};
+					return ${factory.pathBuilder};
 				}
 
 				public static function link(props:$routeParamsType) {
@@ -101,7 +100,7 @@ function buildRoute(expr:Expr) {
 	}
 
 	fields.add(macro class {
-		static final matcher = ${route.pathMatcher};
+		static final matcher = ${factory.pathMatcher};
 
 		public inline static function route(render):blok.router.Matchable {
 			return new $path(render);
@@ -119,10 +118,11 @@ function buildRoute(expr:Expr) {
 		}
 
 		public function match(url:String):kit.Maybe<() -> blok.Child> {
-			return matcher.match(url).map(params -> {
+			// @todo: This is super inefficient.
+			return matcher.match(url).map(match -> {
 				render
-					.map(render -> () -> render(params))
-					.or(() -> blok.Placeholder.node());
+					.map(render -> () -> render(match.params))
+					.or(() -> () -> blok.Placeholder.node());
 			});
 		}
 

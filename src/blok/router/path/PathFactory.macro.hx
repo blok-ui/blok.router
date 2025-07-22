@@ -1,4 +1,4 @@
-package blok.router.parse;
+package blok.router.path;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -6,25 +6,25 @@ import haxe.macro.Expr;
 using haxe.macro.Tools;
 using kit.macro.Tools;
 
-typedef CompilerResult = {
+typedef PathFactory = {
 	public final params:ComplexType;
 	public final pathBuilder:Expr;
 	public final pathMatcher:Expr;
 }
 
-typedef RoutePathParam = {
+typedef PathParam = {
 	public final name:String;
 	public final type:ComplexType;
 	public final optional:Bool;
 }
 
-// @todo: Really rethink naming here. I don't like "Compiler".
-
-function compilePath(source:String, ?pos:Position):CompilerResult {
-	var path = Parser.of(source)
+function buildPath(expr:Expr):PathFactory {
+	var source = expr.extractString();
+	var pos = expr.pos;
+	var segments = PathParser.of(source)
 		.parse()
 		.inspectError(error -> {
-			var infos = (pos ?? Context.currentPos()).getInfos();
+			var infos = pos.getInfos();
 			Context.makePosition({
 				min: infos.min + 1 + error.pos.min,
 				max: infos.min + 1 + error.pos.max,
@@ -33,7 +33,7 @@ function compilePath(source:String, ?pos:Position):CompilerResult {
 		})
 		.orThrow();
 
-	var params = getParamInfo(path.segments);
+	var params = getParamInfo(segments);
 	var paramsType:ComplexType = TAnonymous(params.map(param -> ({
 		name: param.name,
 		kind: FVar(param.type),
@@ -42,27 +42,27 @@ function compilePath(source:String, ?pos:Position):CompilerResult {
 		] else [],
 		pos: (macro null).pos
 	} : Field)));
-	var pathBuilder = createPathBuilder(path.segments);
-	var pathMatcher = createPathMatcher(path.segments, paramsType);
+	var pathBuilder = createPathBuilder(segments);
+	var pathMatcher = createPathMatcher(segments, paramsType);
 
 	return {
-		pathBuilder: createPathBuilder(path.segments),
-		pathMatcher: createPathMatcher(path.segments, paramsType),
+		pathBuilder: createPathBuilder(segments),
+		pathMatcher: createPathMatcher(segments, paramsType),
 		params: paramsType
 	};
 }
 
-private function getParamInfo(segments:Array<RouteSegment>, ?skipOptional:Bool = false) {
-	var params:Array<RoutePathParam> = [];
+private function getParamInfo(segments:Array<PathSegment>, ?skipOptional:Bool = false) {
+	var params:Array<PathParam> = [];
 
-	function scan(segments:Array<RouteSegment>, optional:Bool) {
+	function scan(segments:Array<PathSegment>, optional:Bool) {
 		for (segment in segments) switch segment {
 			case DynamicSegment(key, type):
 				params.push({
 					name: key,
 					type: switch type {
-						case RouteInt: macro :Int;
-						case RouteString: macro :String;
+						case PathInt: macro :Int;
+						case PathString: macro :String;
 					},
 					optional: optional
 				});
@@ -77,14 +77,14 @@ private function getParamInfo(segments:Array<RouteSegment>, ?skipOptional:Bool =
 	return params;
 }
 
-private function createPathBuilder(segments:Array<RouteSegment>):Expr {
+private function createPathBuilder(segments:Array<PathSegment>):Expr {
 	var parts:Array<Expr> = [];
 	for (segment in segments) switch segment {
 		case StaticSegment(value):
 			parts.push(macro $v{value});
 		case DynamicSegment(key, _):
 			parts.push(macro Std.string(props.$key));
-		case SplatSegment():
+		case SplatSegment(key):
 			// @todo
 		case OptionalSegment(segments):
 			var expr = createPathBuilder(segments);
@@ -111,23 +111,23 @@ private function createPathBuilder(segments:Array<RouteSegment>):Expr {
 	return macro [$a{parts}].filter(part -> part != null).join('/');
 }
 
-private function createPathMatcher(segments:Array<RouteSegment>, paramsType:ComplexType) {
+private function createPathMatcher(segments:Array<PathSegment>, paramsType:ComplexType) {
 	var segmentExprs:Array<Expr> = segments.map(routeSegmentToExpr);
-	return macro new blok.router.parse.RoutePath<$paramsType>([$a{segmentExprs}]);
+	return macro new blok.router.path.PathMatcher<$paramsType>([$a{segmentExprs}]);
 }
 
-private function routeSegmentToExpr(segment:RouteSegment):Expr {
+private function routeSegmentToExpr(segment:PathSegment):Expr {
 	return switch segment {
 		case StaticSegment(value):
 			macro StaticSegment($v{value});
 		case DynamicSegment(key, type):
 			var typeExpr = switch type {
-				case RouteInt: macro RouteInt;
-				case RouteString: macro RouteString;
+				case PathInt: macro PathInt;
+				case PathString: macro PathString;
 			}
 			macro DynamicSegment($v{key}, ${typeExpr});
-		case SplatSegment():
-			return macro SplatSegment;
+		case SplatSegment(key):
+			return macro SplatSegment($v{key});
 		case OptionalSegment(segments):
 			return macro OptionalSegment([$a{segments.map(routeSegmentToExpr)}]);
 	}

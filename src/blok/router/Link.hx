@@ -6,6 +6,8 @@ import blok.html.Html;
 import blok.html.HtmlAttributes;
 import blok.signal.Signal;
 
+using haxe.io.Path;
+
 abstract Link({
 	public final url:String;
 

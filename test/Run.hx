@@ -1,11 +1,8 @@
-import blok.router.parse.*;
-import blok.router.*;
+import blok.router.path.*;
 
 function main() {
 	Runner
 		.fromDefaults()
-		.add(ParserSuite)
-		.add(RoutePathSuite)
-			// .add(PathSuite)
+		.add(PathParserSuite)
 		.run();
 }

@@ -7,7 +7,7 @@ import kit.macro.*;
 
 using Lambda;
 using blok.macro.Tools;
-using blok.router.parse.Compiler;
+using blok.router.path.PathFactory;
 using haxe.macro.Tools;
 using kit.Hash;
 using kit.macro.Tools;
@@ -61,7 +61,7 @@ function build(url:Expr) {
 	return ClassBuilder.fromContext()
 		.addBundle(new ComponentBuilder({createFromMarkupMethod: false}))
 		.addStep(new PageBuilder(url))
-		.addStep(new RouteConstructorBuildStep(url.extractString()))
+		.addStep(new RouteConstructorBuildStep(url))
 		.export();
 }
 
@@ -71,15 +71,15 @@ class PageBuilder implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final url:String;
-	final route:CompilerResult;
+	final factory:PathFactory;
 
 	public function new(expr:Expr) {
 		this.url = expr.extractString();
-		this.route = url.compilePath(expr.pos);
+		this.factory = expr.buildPath();
 	}
 
 	public function apply(builder:ClassBuilder) {
-		switch route.params {
+		switch factory.params {
 			case TAnonymous(fields):
 				for (field in fields) {
 					var name = field.name;
@@ -117,15 +117,15 @@ class RouteConstructorBuildStep implements BuildStep {
 	public final priority:Priority = Late;
 
 	final url:String;
-	final route:CompilerResult;
+	final factory:PathFactory;
 
-	public function new(url) {
-		this.url = url;
-		this.route = url.compilePath();
+	public function new(expr:Expr) {
+		this.url = expr.extractString();
+		this.factory = expr.buildPath();
 	}
 
 	public function apply(builder:ClassBuilder) {
-		var routeParamsType = route.params;
+		var routeParamsType = factory.params;
 		var componentPath = builder.getTypePath();
 		var router = builder.hook(RouterProps).getProps();
 		var init = builder.hook(Init);
@@ -166,7 +166,7 @@ class RouteConstructorBuildStep implements BuildStep {
 				builder.add(macro class {
 					public static function createUrl():String {
 						var props = {};
-						return ${route.pathBuilder};
+						return ${factory.pathBuilder};
 					}
 
 					public static function link() {
@@ -176,7 +176,7 @@ class RouteConstructorBuildStep implements BuildStep {
 			default:
 				builder.add(macro class {
 					public static function createUrl(props:$routeParamsType):String {
-						return ${route.pathBuilder};
+						return ${factory.pathBuilder};
 					}
 
 					public static function link(props:$routeParamsType) {
