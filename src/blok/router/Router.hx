@@ -1,23 +1,12 @@
 package blok.router;
 
-/**
-	Use a Router to set up a place in your app that will change routes whenever
-	the Navigator's url signal updates.
-**/
 class Router extends Component {
-	@:children @:attribute final routes:MatchableCollection;
-
-	function setup() {
-		addDisposable(routes);
-	}
+	@:attribute final navigator:Navigator = null;
+	@:children @:attribute final children:Children;
 
 	function render():Child {
-		var path = Navigator.from(this).path();
-		return switch routes.match(path) {
-			case Some(child):
-				child;
-			case None:
-				throw new RouteNotFoundException(path);
-		}
+		return Provider.provide(
+			navigator ?? Navigator.from(this)
+		).child(children);
 	}
 }

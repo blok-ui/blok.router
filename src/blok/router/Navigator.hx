@@ -8,7 +8,14 @@ import blok.signal.Signal;
 using Kit;
 
 @:allow(blok.router)
-@:fallback(error('No Navigator found'))
+@:fallback(new Navigator(
+	#if blok.client
+	new BrowserHistory(),
+	#else
+	new ServerHistory(),
+	#end
+	new UrlPathResolver()
+))
 class Navigator implements Context {
 	public static function fromJson(json:{}) {
 		return new Navigator(

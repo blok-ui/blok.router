@@ -9,12 +9,11 @@ import kit.Error.ErrorCode;
 function main() {
 	Client.mount(
 		Browser.document.getElementById('root'),
-		Provider
-			.provide(new Navigator(
+		Html.view(<main>
+			<Router navigator={new Navigator(
 				new BrowserHistory(),
 				new HashPathResolver(Browser.location.pathname)
-			))
-			.child(Html.view(<main>
+			)}>
 				<ErrorBoundary>
 					<header>
 						<Link to={Home.createUrl()}><h1>"Example"</h1></Link>
@@ -29,7 +28,7 @@ function main() {
 						</nav>
 					</header>
 
-					<Router>
+					<Match>
 						<Home />
 						<Route to="/test">{_ -> Html.div()
 							.child(Home.link().child('Home'))
@@ -43,13 +42,14 @@ function main() {
 						// Note: Route order matters! A catch-all route (a route with the path "*") 
 						// must come last or it will capture all routes.
 						<NotFoundRoute />
-					</Router>
+					</Match>
 					// Handle all other errors that might come up. 
 					<fallback>
 						{(error) -> <ErrorView code=InternalError>{error.message}</ErrorView>}
 					</fallback>
 				</ErrorBoundary>
-			</main>))
+			</Router>
+		</main>)
 	);
 }
 
