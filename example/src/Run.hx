@@ -83,14 +83,25 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 			.child(Html.h1().child('Test Three'))
 			.child(Text.node('Hello ' + name + ' ' + bar()))
 			.child(Match.of([
-				Route.to('/:more').renders(params -> Html.div().child(
-					params.more,
-					// Paths in a Link can be relative!
-					Link.to('../').child('<- Back'),
+				Route.to('/').renders(_ -> Html.div().child(
+					Html.ul().child(
+						Html.li().child(
+							// Paths in a Link can be relative!
+							Link.to('./other/more').child('This is a sub route'),
+						),
+						Html.li().child(
+							Link.to('./other/yams').child('This is also a sub route'),
+						)
+					)
 				)),
-				Route.to('*').renders(_ -> Html.div().child(
-					Link.to('./more').child('This is a sub route')
-				))
+				Route.to('/other/:more').renders(params -> Html.div().child(
+					params.more,
+					Link.to('../../').child('<- Back'),
+					Link.to('../yams').child('yams'),
+				)),
+				// @todo: This does not get hit if we match too many segments.
+				// Note sure why.
+				NotFoundRoute.route({})
 			]));
 	}
 }
