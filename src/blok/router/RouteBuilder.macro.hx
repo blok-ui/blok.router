@@ -3,8 +3,8 @@ package blok.router;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
+import blok.router.path.PathInfo;
 
-using blok.router.path.PathFactory;
 using kit.Hash;
 using kit.macro.Tools;
 
@@ -71,7 +71,7 @@ function buildRoute(expr:Expr) {
 	if (path.typePathExists()) return TPath(path);
 
 	var fields = new ClassFieldCollection([]);
-	var factory = expr.buildPath();
+	var factory = PathInfo.ofExpr(expr);
 	var routeParamsType = factory.params;
 	var renderType = macro :(params:$routeParamsType) -> blok.Child;
 
@@ -118,7 +118,6 @@ function buildRoute(expr:Expr) {
 		}
 
 		public function match(url:String):kit.Maybe<blok.Child> {
-			// @todo: This is super inefficient.
 			return matcher.match(url).map(match -> {
 				render
 					.map(render -> (new blok.router.RouteNode(match, match -> render(match.params)) : blok.Child))

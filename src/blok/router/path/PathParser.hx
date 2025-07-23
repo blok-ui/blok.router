@@ -21,7 +21,7 @@ class PathParseError {
 }
 
 class PathParser {
-	public static function of(source:String) {
+	public static function ofString(source:String) {
 		return new PathParser(source);
 	}
 
@@ -56,26 +56,27 @@ class PathParser {
 	}
 
 	function parseSegment():Result<PathSegment, PathParseError> {
-		if (match('*')) return parseSplat();
+		if (match('*')) return parseWildcardSegment();
 		if (match(':')) return parseDynamicSegment();
 		if (match('(')) return parseOptionalSegment();
 		return parseStaticSegment();
 	}
 
-	function parseSplat():Result<PathSegment, PathParseError> {
+	function parseWildcardSegment():Result<PathSegment, PathParseError> {
 		var start = position - 1;
 
-		if (matchSegmentEnd()) return Ok(SplatSegment());
+		if (isAtEnd()) return Ok(WildcardSegment());
+
 		var key = readWhile(() -> isIdentifier(peek())).replace('-', '_');
-		if (!matchSegmentEnd()) {
+		if (!isAtEnd()) {
 			return Error({
-				message: 'Expected end of segment',
-				pos: {min: position, max: position + 1},
+				message: 'Only allowed as the last segment of a path',
+				pos: {min: start, max: position},
 				source: source
 			});
 		}
 
-		return Ok(SplatSegment(key));
+		return Ok(WildcardSegment(key));
 	}
 
 	function parseStaticSegment():Result<PathSegment, PathParseError> {

@@ -11,7 +11,7 @@ using Kit;
 class Navigator implements Context {
 	public static function fromJson(json:{}) {
 		return new Navigator(
-			#if blok.client
+			#if (js && !nodejs)
 			new BrowserHistory(),
 			#else
 			new ServerHistory(),
@@ -22,7 +22,7 @@ class Navigator implements Context {
 
 	public static function createDefault() {
 		return new Navigator(
-			#if blok.client
+			#if (js && !nodejs)
 			new BrowserHistory(),
 			#else
 			new ServerHistory(),

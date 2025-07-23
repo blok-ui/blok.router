@@ -79,27 +79,26 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 	@:attribute final name:String;
 
 	function render():Child {
+		trace(more());
 		return Html.div()
 			.child(Html.h1().child('Test Three'))
 			.child(Text.node('Hello ' + name + ' ' + bar()))
-			.child(Match.node({
-				routes: [
-					Route.to('more').renders(_ -> 'More'),
-					Route.to('*').renders(_ -> Html.div().child(
-						// Paths that are not absolute will link relative to
-						// the current route
-						Link.to('more').child('This is a sub route')
-					))
-				]
-			}));
+			.child(Match.of([
+				Route.to('more').renders(_ -> 'More'),
+				Route.to('*').renders(_ -> Html.div().child(
+					// Paths that are not absolute will link relative to
+					// the current route
+					Link.to('more').child('This is a sub route')
+				))
+			]));
 	}
 }
 
-class NotFoundRoute extends Page<'*'> {
+class NotFoundRoute extends Page<'*url'> {
 	function render() {
 		return ErrorView.node({
 			code: NotFound,
-			children: 'Route not found'
+			children: [Text.ofString('Route not found: '), Text.ofSignal(url)]
 		});
 	}
 }
@@ -109,10 +108,9 @@ class ErrorView extends Component {
 	@:children @:attribute final children:Children;
 
 	function render() {
-		return Html.div()
-			.child(
-				Html.h3().child('Error: ${code}'),
-				children
-			);
+		return Html.div().child(
+			Html.h3().child('Error: ${code}'),
+			children
+		);
 	}
 }

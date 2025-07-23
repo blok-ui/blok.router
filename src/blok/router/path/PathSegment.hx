@@ -3,7 +3,7 @@ package blok.router.path;
 enum PathSegment {
 	StaticSegment(value:String);
 	DynamicSegment(key:String, type:PathParamType);
-	SplatSegment(?key:String);
+	WildcardSegment(?key:String);
 	OptionalSegment(segments:Array<PathSegment>);
 }
 

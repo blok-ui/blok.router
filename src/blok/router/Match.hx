@@ -10,10 +10,8 @@ import haxe.io.Path;
 	own `Match` will use the current Navigator.
 **/
 class Match extends Component {
-	public inline static function wrap(routes) {
-		return node({
-			routes: routes
-		});
+	public inline static function of(routes) {
+		return node({routes: routes});
 	}
 
 	@:children @:attribute final routes:MatchableCollection;

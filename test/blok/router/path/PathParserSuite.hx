@@ -3,7 +3,7 @@ package blok.router.path;
 class PathParserSuite extends Suite {
 	@:test(expects = 2)
 	function indexRouteShouldOnlyMatchSingleSlash() {
-		PathParser.of('/')
+		PathParser.ofString('/')
 			.parse()
 			.inspect(segments -> {
 				var matcher = new PathMatcher<{}>(segments);
@@ -17,7 +17,7 @@ class PathParserSuite extends Suite {
 
 	@:test(expects = 8)
 	function pathsAreParsed() {
-		PathParser.of('/one/:two/:three[String]/(optional/:optional)/end')
+		PathParser.ofString('/one/:two/:three[String]/(optional/:optional)/end')
 			.parse()
 			.inspect(segments -> {
 				var matcher = new PathMatcher<{two:String, three:String, ?optional:String}>(segments);
@@ -39,7 +39,7 @@ class PathParserSuite extends Suite {
 
 	@:test(expects = 4)
 	function typesAreParsedCorrectly() {
-		PathParser.of('/str/:str[String]/int/:int[Int]')
+		PathParser.ofString('/str/:str[String]/int/:int[Int]')
 			.parse()
 			.inspect(segments -> {
 				var matcher = new PathMatcher<{str:String, int:String}>(segments);
@@ -55,7 +55,7 @@ class PathParserSuite extends Suite {
 
 	@:test(expects = 3)
 	function remainingSegmentsArePassedToTheMatcherOnWildcards() {
-		PathParser.of('/str/:str/*')
+		PathParser.ofString('/str/:str/*')
 			.parse()
 			.inspect(segments -> {
 				var matcher = new PathMatcher<{str:String}>(segments);
@@ -68,9 +68,25 @@ class PathParserSuite extends Suite {
 			.inspectError(error -> Assert.fail('Parsing failed: ${error}'));
 	}
 
+	@:test(expects = 4)
+	function namedWildcardsArePassedToParams() {
+		PathParser.ofString('/str/:str/*more')
+			.parse()
+			.inspect(segments -> {
+				var matcher = new PathMatcher<{str:String, ?more:String}>(segments);
+				matcher.match('/str/foo/bar/bin').inspect(match -> {
+					match.params.str.equals('foo');
+					match.params.more.equals('/bar/bin');
+					match.params.more.equals(match.remainder);
+					match.path.equals('/str/foo');
+				});
+			})
+			.inspectError(error -> Assert.fail('Parsing failed: ${error}'));
+	}
+
 	@:test(expects = 2)
 	function dynamicNamesAreSafelyConverted() {
-		PathParser.of('/one/:this-is-a-param/:so_is_this')
+		PathParser.ofString('/one/:this-is-a-param/:so_is_this')
 			.parse()
 			.inspect(segments -> {
 				var matcher = new PathMatcher<{

@@ -49,7 +49,10 @@ class PathMatcher<Params:{}> {
 				if (!type.test(part)) return None;
 				params.setField(key, part);
 				path.push(parts.shift());
-			case SplatSegment(key):
+			case WildcardSegment(key):
+				if (key != null && parts.length > 0) {
+					params.setField(key, '/' + parts.join('/'));
+				}
 				return Some({
 					params: params,
 					path: path,

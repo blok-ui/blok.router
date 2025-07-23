@@ -1,24 +1,21 @@
 package blok.router;
 
 import blok.ComponentBuilder;
+import blok.router.path.PathInfo;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import kit.macro.*;
 
 using Lambda;
 using blok.macro.Tools;
-using blok.router.path.PathFactory;
 using haxe.macro.Tools;
 using kit.Hash;
 using kit.macro.Tools;
 
 function buildGeneric() {
 	return switch Context.getLocalType() {
-		case TInst(_, [
-			TInst(_.get() => {
-				kind: KExpr(expr)
-			}, _)]):
-				buildPage(expr);
+		case TInst(_, [TInst(_.get() => {kind: KExpr(expr)}, _)]):
+			buildPage(expr);
 		default:
 			throw 'assert';
 	}
@@ -71,15 +68,15 @@ class PageBuilder implements BuildStep {
 	public final priority:Priority = Normal;
 
 	final url:String;
-	final factory:PathFactory;
+	final info:PathInfo;
 
 	public function new(expr:Expr) {
 		this.url = expr.extractString();
-		this.factory = expr.buildPath();
+		this.info = PathInfo.ofExpr(expr);
 	}
 
 	public function apply(builder:ClassBuilder) {
-		switch factory.params {
+		switch info.params {
 			case TAnonymous(fields):
 				for (field in fields) {
 					var name = field.name;
@@ -117,15 +114,15 @@ class RouteConstructorBuildStep implements BuildStep {
 	public final priority:Priority = Late;
 
 	final url:String;
-	final factory:PathFactory;
+	final info:PathInfo;
 
 	public function new(expr:Expr) {
 		this.url = expr.extractString();
-		this.factory = expr.buildPath();
+		this.info = PathInfo.ofExpr(expr);
 	}
 
 	public function apply(builder:ClassBuilder) {
-		var routeParamsType = factory.params;
+		var routeParamsType = info.params;
 		var componentPath = builder.getTypePath();
 		var router = builder.hook(RouterProps).getProps();
 		var init = builder.hook(Init);
@@ -153,7 +150,7 @@ class RouteConstructorBuildStep implements BuildStep {
 			var name = field.name;
 			obj.push({
 				field: name,
-				expr: macro routerProps.$name
+				expr: macro params.$name
 			});
 		}
 		var nodeProps:Expr = {
@@ -166,7 +163,7 @@ class RouteConstructorBuildStep implements BuildStep {
 				builder.add(macro class {
 					public static function createUrl():String {
 						var props = {};
-						return ${factory.pathBuilder};
+						return ${info.pathBuilder};
 					}
 
 					public static function link() {
@@ -176,7 +173,7 @@ class RouteConstructorBuildStep implements BuildStep {
 			default:
 				builder.add(macro class {
 					public static function createUrl(props:$routeParamsType):String {
-						return ${factory.pathBuilder};
+						return ${info.pathBuilder};
 					}
 
 					public static function link(props:$routeParamsType) {
@@ -189,7 +186,7 @@ class RouteConstructorBuildStep implements BuildStep {
 			@:fromMarkup
 			@:noUsing
 			public static function route(props:$propsType):blok.router.Matchable {
-				return new $routerTp(routerProps -> {
+				return new $routerTp(params -> {
 					return $p{componentPath.pack.concat([componentPath.name, 'node'])}($nodeProps);
 				});
 			}

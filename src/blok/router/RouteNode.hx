@@ -7,7 +7,7 @@ using Kit;
 
 class RouteNode<Params:{}> implements Node {
 	public final match:PathMatch<Params>;
-	public final render:(params:PathMatch<Params>) -> Child;
+	public final render:(match:PathMatch<Params>) -> Child;
 	public final key:Null<Key>;
 
 	public function new(match, render, ?key:Key) {

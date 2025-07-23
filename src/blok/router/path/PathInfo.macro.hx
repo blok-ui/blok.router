@@ -3,53 +3,63 @@ package blok.router.path;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
+using Kit;
 using haxe.macro.Tools;
 using kit.macro.Tools;
-
-typedef PathFactory = {
-	public final params:ComplexType;
-	public final pathBuilder:Expr;
-	public final pathMatcher:Expr;
-}
 
 typedef PathParam = {
 	public final name:String;
 	public final type:ComplexType;
 	public final optional:Bool;
+	public final wildcard:Bool;
 }
 
-function buildPath(expr:Expr):PathFactory {
-	var source = expr.extractString();
-	var pos = expr.pos;
-	var segments = PathParser.of(source)
-		.parse()
-		.inspectError(error -> {
-			var infos = pos.getInfos();
-			Context.makePosition({
-				min: infos.min + 1 + error.pos.min,
-				max: infos.min + 1 + error.pos.max,
-				file: infos.file
-			}).error(error.message);
-		})
-		.orThrow();
+@:forward
+abstract PathInfo({
+	public final params:ComplexType;
+	public final pathBuilder:Expr;
+	public final pathMatcher:Expr;
+}) {
+	@:from public static function ofExpr(expr:Expr) {
+		var source = expr.extractString();
+		var pos = expr.pos;
+		var segments = PathParser.ofString(source)
+			.parse()
+			.inspectError(error -> {
+				var infos = pos.getInfos();
+				Context.makePosition({
+					min: infos.min + 1 + error.pos.min,
+					max: infos.min + 1 + error.pos.max,
+					file: infos.file
+				}).error(error.message);
+			})
+			.orThrow();
 
-	var params = getParamInfo(segments);
-	var paramsType:ComplexType = TAnonymous(params.map(param -> ({
-		name: param.name,
-		kind: FVar(param.type),
-		meta: if (param.optional) [
-			{name: ':optional', params: [], pos: (macro null).pos}
-		] else [],
-		pos: (macro null).pos
-	} : Field)));
-	var pathBuilder = createPathBuilder(segments);
-	var pathMatcher = createPathMatcher(segments, paramsType);
+		var params = getParamInfo(segments);
+		var paramsType:ComplexType = TAnonymous(params.map(param -> ({
+			name: param.name,
+			kind: FVar(param.type),
+			meta: [
+				if (param.optional)
+					{name: ':optional', params: [], pos: (macro null).pos}
+				else
+					null
+			].filter(entry -> entry != null),
+			pos: (macro null).pos
+		} : Field)));
+		var pathBuilder = createPathBuilder(segments);
+		var pathMatcher = createPathMatcher(segments, paramsType);
 
-	return {
-		pathBuilder: pathBuilder,
-		pathMatcher: pathMatcher,
-		params: paramsType
-	};
+		return new PathInfo({
+			pathBuilder: pathBuilder,
+			pathMatcher: pathMatcher,
+			params: paramsType
+		});
+	}
+
+	public function new(props) {
+		this = props;
+	}
 }
 
 private function getParamInfo(segments:Array<PathSegment>, ?skipOptional:Bool = false) {
@@ -64,10 +74,18 @@ private function getParamInfo(segments:Array<PathSegment>, ?skipOptional:Bool = 
 						case PathInt: macro :Int;
 						case PathString: macro :String;
 					},
-					optional: optional
+					optional: optional,
+					wildcard: false
 				});
 			case OptionalSegment(segments) if (!skipOptional):
 				scan(segments, true);
+			case WildcardSegment(key) if (key != null):
+				params.push({
+					name: key,
+					type: macro :String,
+					optional: true,
+					wildcard: true
+				});
 			default:
 		}
 	}
@@ -104,6 +122,8 @@ private function createPathBuilder(segments:Array<PathSegment>):Expr {
 			} else {
 				parts.push(expr);
 			}
+		case WildcardSegment(key) if (key != null):
+			parts.push(macro if (props.$key != null) props.$key else null);
 		default:
 	}
 
@@ -125,8 +145,8 @@ private function routeSegmentToExpr(segment:PathSegment):Expr {
 				case PathString: macro PathString;
 			}
 			macro DynamicSegment($v{key}, ${typeExpr});
-		case SplatSegment(key):
-			return macro SplatSegment($v{key});
+		case WildcardSegment(key):
+			return macro WildcardSegment($v{key});
 		case OptionalSegment(segments):
 			return macro OptionalSegment([$a{segments.map(routeSegmentToExpr)}]);
 	}

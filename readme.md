@@ -18,7 +18,7 @@ class Routes extends Component {
     </Router>);
     // or:
     return Router.node({
-      children: Match.wrap([
+      children: Match.of([
         Route.to('/').renders(_ -> Html.p().child('This is the home route')),
         Route.to('/foo/:bar').renders(params -> Html.p().child(params.bar)),
         Route.to('*').renders(_ -> "Route not found")
@@ -30,7 +30,18 @@ class Routes extends Component {
 
 Use whichever you prefer.
 
-If a Router doesn't match a route, it will throw a RouteNotFoundException. This can be caught using an ErrorBoundary, or you can define a wildcard route (any route with a '*' path) to handle invalid URLs.
+The `Router` component is optional, but acts as a place to configure routing in your app and it's generally good practice to have one at the root of your app.
+
+To configure your Router, you can provide a `Navigator`. For example, if you wanted to create a router for the browser that uses the hash instead of the full url, this is how you'd configure things:
+
+```haxe
+Html.view(<Router navigator={new blok.router.Navigator(
+  new blok.router.navigation.BrowserHistory(),
+  new blok.router.navigation.HashPathResolver()
+)}></Router>);
+```
+
+The `Match` component is where your Routes should go. If a `Match` component doesn't match a route, it will throw a RouteNotFoundException. This can be caught using an ErrorBoundary, or you can define a wildcard route (any route with a '*' path) to handle invalid URLs.
 
 ```haxe
 // Using an ErrorBoundary:
@@ -48,6 +59,24 @@ Html.view(<Router>
 </Router>);
 ```
 
+Matches can also be nested inside Routes, where they can allow nested routing:
+
+```haxe
+Html.view(<Router>
+  <Match>
+    // Note the wildcard on the end of the Route here (the "*") -- this is
+    // required for sub-routing to work. Everything in the path after
+    // "/foo/" will be used to match the sub-routes. 
+    <Route to="/foo/*">
+      {_ -> <Match>
+        <Route to="/sub/:value">{params -> params.value}</Route>
+        <Route to="*url">{params -> 'Not found: ${params.url}'}</Route>
+      </Match>}
+    </Route>
+  </Match>
+</Router>);
+```
+
 Routes use a simple syntax that should be familiar if you've used any similar libraries. Here's a quick overview:
 
 ```haxe
@@ -57,6 +86,10 @@ Routes use a simple syntax that should be familiar if you've used any similar li
 "foo/:bar/bin";
 // A route with an optional segment:
 "foo/(optional/:bar)/:etc";
+// A route with a wildcard:
+"foo/bar/*";
+// A route with a named wildcard (which will pass it as a param to the route):
+"foo/bar/*more";
 ```
 
 > Note: this syntax is currently undergoing changes and is too unstable to document right now. Use at your own risk. 
