@@ -23,4 +23,11 @@ class PathParamTypeTools {
 			case PathInt: matchInt.match(value);
 		}
 	}
+
+	public static function decode(type:PathParamType, value:String):Dynamic {
+		return switch type {
+			case PathString: value;
+			case PathInt: Std.parseInt(value);
+		}
+	}
 }

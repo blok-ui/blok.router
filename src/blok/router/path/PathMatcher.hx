@@ -55,7 +55,7 @@ class PathMatcher<Params:{}> {
 				var part = parts[0];
 				if (part == null) return None;
 				if (!type.test(part)) return None;
-				params.setField(key, part);
+				params.setField(key, type.decode(part));
 				path.push(parts.shift());
 			case WildcardSegment(key):
 				if (key != null && parts.length > 0) {

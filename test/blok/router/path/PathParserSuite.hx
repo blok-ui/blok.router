@@ -37,15 +37,16 @@ class PathParserSuite extends Suite {
 			.inspectError(error -> Assert.fail('Parsing failed: ${error}'));
 	}
 
-	@:test(expects = 4)
+	@:test(expects = 5)
 	function typesAreParsedCorrectly() {
 		PathParser.ofString('/str/:str[String]/int/:int[Int]')
 			.parse()
 			.inspect(segments -> {
-				var matcher = new PathMatcher<{str:String, int:String}>(segments);
+				var matcher = new PathMatcher<{str:String, int:Int}>(segments);
 				matcher.match('/str/str/int/1').inspect(match -> {
 					match.params.str.equals('str');
-					match.params.int.equals('1');
+					(match.params.int is Int).equals(true);
+					match.params.int.equals(1);
 					match.remainder.equals(null);
 				});
 				matcher.match('/str/str/int/int').equals(None);
