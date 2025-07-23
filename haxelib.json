@@ -4,7 +4,7 @@
   "license": "MIT",
   "classPath": "src",
   "version": "0.3.0-alpha.1",
-  "releasenote": "Prerelease",
+  "releasenote": "Complete overhaul of API.",
   "contributors": ["wartman"],
   "dependencies": {
     "blok.core": "0.12.0-alpha.1"
