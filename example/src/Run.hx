@@ -79,16 +79,17 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 	@:attribute final name:String;
 
 	function render():Child {
-		trace(more());
 		return Html.div()
 			.child(Html.h1().child('Test Three'))
 			.child(Text.node('Hello ' + name + ' ' + bar()))
 			.child(Match.of([
-				Route.to('more').renders(_ -> 'More'),
+				Route.to('/:more').renders(params -> Html.div().child(
+					params.more,
+					// Paths in a Link can be relative!
+					Link.to('../').child('<- Back'),
+				)),
 				Route.to('*').renders(_ -> Html.div().child(
-					// Paths that are not absolute will link relative to
-					// the current route
-					Link.to('more').child('This is a sub route')
+					Link.to('./more').child('This is a sub route')
 				))
 			]));
 	}

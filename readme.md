@@ -169,11 +169,24 @@ class Root extends Component {
         ),
         Match.wrap([
           Route.to('/').renders(_ -> 'Home'),
-          Route.to('/foo/{bar:String}').renders(props -> 'Foo ' + props.bar)
+          Route.to('/foo/:bar[String]').renders(props -> 'Foo ' + props.bar)
         ])
       ));
   }
 }
+```
+
+Links can also use relative paths, which can be convenient when dealing with nested routes.
+
+```haxe
+Html.view(<Match>
+  <Route to="/foo/bar/:foo/*">{_ -> <Match>
+    <Route to="/:bin">{params -> <div>
+      <p>{params.bin}</p>
+      <Link to="../">"This will create a link relative to the enclosing Route"</Link>
+    </div>}</Route>
+  </Match>}
+</Match>);
 ```
 
 No checks are done to ensure that your `Link` is actually pointed to a valid URL, which is not ideal. However Blok Router *does* have a solution for this, and all Routes and Pages come with a `link` static method that will generate correct Links for you:
