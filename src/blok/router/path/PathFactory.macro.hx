@@ -46,8 +46,8 @@ function buildPath(expr:Expr):PathFactory {
 	var pathMatcher = createPathMatcher(segments, paramsType);
 
 	return {
-		pathBuilder: createPathBuilder(segments),
-		pathMatcher: createPathMatcher(segments, paramsType),
+		pathBuilder: pathBuilder,
+		pathMatcher: pathMatcher,
 		params: paramsType
 	};
 }
