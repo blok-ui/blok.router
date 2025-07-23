@@ -24,14 +24,22 @@ class PathMatcher<Params:{}> {
 
 		var parts = path.split('/').filter(part -> part != null && part.length > 0);
 
-		return matchSegments(segments, parts).map(result -> {
-			params: cast result.params,
-			path: normalizePath(result.path.join('/')),
-			remainder: if (result.remaining.length == 0) null else normalizePath(result.remaining.join('/'))
-		});
+		return matchSegments(segments, parts)
+			.flatMap(result -> {
+				if (result.remaining.length > 0 && !result.hasWildcard) {
+					return None;
+				}
+				return Some(result);
+			})
+			.map(result -> {
+				params: cast result.params,
+				path: normalizePath(result.path.join('/')),
+				remainder: if (result.remaining.length == 0) null else normalizePath(result.remaining.join('/'))
+			});
 	}
 
 	function matchSegments(segments:Array<PathSegment>, parts:Array<String>):Maybe<{
+		?hasWildcard:Bool,
 		params:{},
 		path:Array<String>,
 		remaining:Array<String>
@@ -54,6 +62,7 @@ class PathMatcher<Params:{}> {
 					params.setField(key, '/' + parts.join('/'));
 				}
 				return Some({
+					hasWildcard: true,
 					params: params,
 					path: path,
 					remaining: parts

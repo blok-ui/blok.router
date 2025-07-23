@@ -99,8 +99,6 @@ class TestThree extends Page<'/test3/:bar/*more'> {
 					Link.to('../../').child('<- Back'),
 					Link.to('../yams').child('yams'),
 				)),
-				// @todo: This does not get hit if we match too many segments.
-				// Note sure why.
 				NotFoundRoute.route({})
 			]));
 	}

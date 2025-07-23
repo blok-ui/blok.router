@@ -85,6 +85,20 @@ class PathParserSuite extends Suite {
 	}
 
 	@:test(expects = 2)
+	function pathsRequireAWildcardToMatchRemainders() {
+		PathParser.ofString('/str/:str')
+			.parse()
+			.inspect(segments -> {
+				var matcher = new PathMatcher<{str:String}>(segments);
+				matcher.match('/str/foo/bar/bin').equals(None);
+				matcher.match('/str/foo').inspect(match -> {
+					match.params.str.equals('foo');
+				});
+			})
+			.inspectError(error -> Assert.fail('Parsing failed: ${error}'));
+	}
+
+	@:test(expects = 2)
 	function dynamicNamesAreSafelyConverted() {
 		PathParser.ofString('/one/:this-is-a-param/:so_is_this')
 			.parse()
