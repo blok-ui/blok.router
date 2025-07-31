@@ -9,6 +9,11 @@ import haxe.io.Path;
 	match routes relative to the current path. If used on its
 	own `Match` will use the current Navigator.
 **/
+#if php
+// @todo: Haxe apparently doesn't have "match" on its list of reserved PHP
+// keywords yet. Remove this when that is no longer the case.
+@:native('MatchRoute')
+#end
 class Match extends Component {
 	public inline static function of(routes) {
 		return node({routes: routes});

@@ -97,6 +97,7 @@ private function getParamInfo(segments:Array<PathSegment>, ?skipOptional:Bool = 
 
 private function createPathBuilder(segments:Array<PathSegment>):Expr {
 	var parts:Array<Expr> = [];
+
 	for (segment in segments) switch segment {
 		case StaticSegment(value):
 			parts.push(macro $v{value});

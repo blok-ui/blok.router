@@ -1,0 +1,5 @@
+test-common.hxml
+
+-php dist/test-php
+
+-cmd php dist/test-php/index.php
