@@ -10,7 +10,7 @@ using haxe.io.Path;
 using Reflect;
 
 @:allow(blok.router)
-class RouteView<Params:{}> implements View {
+class RouteView<Params:{}> extends View {
 	public static function from(view:IntoView) {
 		return maybeFrom(view).orThrow('No RouteContext exists');
 	}
