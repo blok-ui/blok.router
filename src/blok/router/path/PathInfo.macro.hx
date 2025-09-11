@@ -5,7 +5,7 @@ import haxe.macro.Expr;
 
 using Kit;
 using haxe.macro.Tools;
-using kit.macro.Tools;
+using kit.Macro;
 
 typedef PathParam = {
 	public final name:String;

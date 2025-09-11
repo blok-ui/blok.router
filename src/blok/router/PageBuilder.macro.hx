@@ -1,16 +1,17 @@
 package blok.router;
 
 import blok.ComponentBuilder;
+import blok.macro.LifecycleBuildStep;
 import blok.router.path.PathInfo;
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import kit.macro.*;
+import kit.macro.step.ConstructorBuildStep;
 
 using Lambda;
 using blok.macro.Tools;
 using haxe.macro.Tools;
 using kit.Hash;
-using kit.macro.Tools;
+using kit.Macro;
 
 function buildGeneric() {
 	return switch Context.getLocalType() {
@@ -26,11 +27,11 @@ function buildPage(expr:Expr) {
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
 	var name = 'Page_${suffix}';
-	var path:TypePath = {pack: pack, name: name, params: []};
+	var path:TypePathBuilder = {pack: pack, name: name, params: []};
 
-	if (path.typePathExists()) return TPath(path);
+	if (path.exists()) return TPath(path);
 
-	var fields = new ClassFieldCollection([]);
+	var fields = new FieldCollection([]);
 
 	Context.defineType({
 		pack: pack,
@@ -55,18 +56,27 @@ function buildPage(expr:Expr) {
 }
 
 function build(url:Expr) {
-	return ClassBuilder.fromContext()
-		.addBundle(new ComponentBuilder({createFromMarkupMethod: false}))
-		.addStep(new PageBuilder(url))
-		.addStep(new RouteConstructorBuildStep(url))
-		.export();
+	return BuildFactory
+		.ofSteps([
+			new ComponentBuilder({
+				createFromMarkupMethod: false,
+				children: [
+					// @todo: This nesting could be simplified by just merging
+					// the functionality of the RouteConstructorBuildStep into
+					// PageBuilder.
+					new RouteConstructorBuildStep({
+						expr: url,
+						children: [
+							new PageBuilder(url)
+						]
+					})
+				]
+			})
+		])
+		.buildFromContext();
 }
 
-final RouterProps = 'router.prop';
-
-class PageBuilder implements BuildStep {
-	public final priority:Priority = Normal;
-
+class PageBuilder extends BuildStep {
 	final url:String;
 	final info:PathInfo;
 
@@ -75,7 +85,22 @@ class PageBuilder implements BuildStep {
 		this.info = PathInfo.ofExpr(expr);
 	}
 
-	public function apply(builder:ClassBuilder) {
+	public function steps() return [];
+
+	public function apply(context:BuildContext) {
+		var constructor = switch findAncestorOfType(ConstructorBuildStep) {
+			case Some(constructor): constructor;
+			case None: return;
+		}
+		var lifecycle = switch findAncestorOfType(LifecycleBuildStep) {
+			case Some(lifecycle): lifecycle;
+			case None: return;
+		}
+		var router = switch findAncestorOfType(RouteConstructorBuildStep) {
+			case Some(router): router;
+			case None: return;
+		}
+
 		switch info.params {
 			case TAnonymous(fields):
 				for (field in fields) {
@@ -85,24 +110,22 @@ class PageBuilder implements BuildStep {
 						default: throw 'assert';
 					}
 
-					builder.add(macro class {
+					router.init.addProp({
+						name: name,
+						type: ct,
+						optional: false
+					});
+					context.fields.add(macro class {
 						final $name:blok.signal.Signal<$ct>;
 					});
-					builder.hook(RouterProps)
-						.addProp({
-							name: name,
-							type: ct,
-							optional: false
-						});
-					builder.hook(Init)
+					constructor.init
 						.addProp({
 							name: name,
 							type: ct,
 							optional: false
 						})
 						.addExpr(macro this.$name = props.$name);
-					builder.updateHook()
-						.addExpr(macro this.$name.set(props.$name));
+					lifecycle.onUpdate(macro this.$name.set(props.$name));
 				}
 			default:
 				throw 'assert';
@@ -110,23 +133,35 @@ class PageBuilder implements BuildStep {
 	}
 }
 
-class RouteConstructorBuildStep implements BuildStep {
-	public final priority:Priority = Late;
+class RouteConstructorBuildStep extends BuildStep {
+	public final init:ConstructorBuildHook = new ConstructorBuildHook();
 
 	final url:String;
 	final info:PathInfo;
+	final childSteps:Array<BuildStep>;
 
-	public function new(expr:Expr) {
-		this.url = expr.extractString();
-		this.info = PathInfo.ofExpr(expr);
+	public function new(options:{
+		expr:Expr,
+		?children:Array<BuildStep>
+	}) {
+		this.url = options.expr.extractString();
+		this.childSteps = options.children ?? [];
+		this.info = PathInfo.ofExpr(options.expr);
 	}
 
-	public function apply(builder:ClassBuilder) {
+	public function steps() return childSteps;
+
+	public function apply(context:BuildContext) {
+		var constructor = switch findAncestorOfType(ConstructorBuildStep) {
+			case Some(constructor): constructor;
+			case None: return;
+		}
+
 		var routeParamsType = info.params;
-		var componentPath = builder.getTypePath();
-		var router = builder.hook(RouterProps).getProps();
-		var init = builder.hook(Init);
-		var late = builder.hook(LateInit);
+		var componentPath = context.type.toTypePath();
+		var router = init.getProps();
+		var init = constructor.init;
+		var late = constructor.late;
 		var props = init.getProps()
 			.concat(late.getProps())
 			.filter(prop -> !router.exists(p -> p.name == prop.name));
@@ -160,7 +195,7 @@ class RouteConstructorBuildStep implements BuildStep {
 
 		switch routeParamsType {
 			case TAnonymous(params) if (params.length == 0):
-				builder.add(macro class {
+				context.fields.add(macro class {
 					public static function createUrl():String {
 						var props = {};
 						return ${info.pathBuilder};
@@ -171,7 +206,7 @@ class RouteConstructorBuildStep implements BuildStep {
 					}
 				});
 			default:
-				builder.add(macro class {
+				context.fields.add(macro class {
 					public static function createUrl(props:$routeParamsType):String {
 						return ${info.pathBuilder};
 					}
@@ -182,7 +217,7 @@ class RouteConstructorBuildStep implements BuildStep {
 				});
 		}
 
-		builder.add(macro class {
+		context.fields.add(macro class {
 			@:fromMarkup
 			@:noUsing
 			public static function route(props:$propsType):blok.router.Matchable {

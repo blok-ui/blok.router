@@ -6,7 +6,7 @@ import kit.macro.*;
 import blok.router.path.PathInfo;
 
 using kit.Hash;
-using kit.macro.Tools;
+using kit.Macro;
 
 function buildGeneric() {
 	return switch Context.getLocalType() {
@@ -23,11 +23,11 @@ function buildBaseRoute() {
 	var pack = ['blok', 'router'];
 	var name = 'Route_Base';
 	var pos = Context.getLocalClass().get().pos;
-	var path:TypePath = {pack: pack, name: name, params: []};
+	var path:TypePathBuilder = {pack: pack, name: name, params: []};
 
-	if (path.typePathExists()) return TPath(path);
+	if (path.exists()) return TPath(path);
 
-	var fields = new ClassFieldCollection([]);
+	var fields = new FieldCollection([]);
 
 	fields.add(macro class {
 		@:fromMarkup
@@ -66,11 +66,11 @@ function buildRoute(expr:Expr) {
 	var pos = Context.getLocalClass().get().pos;
 	var pack = ['blok', 'router'];
 	var name = 'Route_${suffix}';
-	var path:TypePath = {pack: pack, name: name, params: []};
+	var path:TypePathBuilder = {pack: pack, name: name, params: []};
 
-	if (path.typePathExists()) return TPath(path);
+	if (path.exists()) return TPath(path);
 
-	var fields = new ClassFieldCollection([]);
+	var fields = new FieldCollection([]);
 	var factory = PathInfo.ofExpr(expr);
 	var routeParamsType = factory.params;
 	var renderType = macro :(params:$routeParamsType) -> blok.Child;

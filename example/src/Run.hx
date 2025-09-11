@@ -108,7 +108,7 @@ class NotFoundRoute extends Page<'*url'> {
 	function render() {
 		return ErrorView.node({
 			code: NotFound,
-			children: [Text.ofString('Route not found: '), Text.ofSignal(url)]
+			children: [Text.of('Route not found: '), Text.ofSignal(url)]
 		});
 	}
 }

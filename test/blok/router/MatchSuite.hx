@@ -26,14 +26,14 @@ class MatchSuite extends Suite {
 		var sandbox = factory.wrap(Provider.provide(navigator).child(routes));
 
 		return sandbox.mount().then(root -> {
-			root.primitive.toString({includeTextMarkers: false}).equals('One');
+			root.primitive.toString().equals('One');
 			navigator.go('/two');
 			// @todo: We need a consistent way to just schedule for the next render.
 			return new Task(activate -> adaptor.schedule(() -> {
 				adaptor.scheduleEffect(() -> activate(Ok(root)));
 			}));
 		}).then(root -> {
-			root.primitive.toString({includeTextMarkers: false}).equals('Two');
+			root.primitive.toString().equals('Two');
 			return Task.nothing();
 		});
 	}

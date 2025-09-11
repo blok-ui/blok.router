@@ -1,9 +1,9 @@
 package blok.router.path;
 
 using Kit;
+using Reflect;
 using StringTools;
 using haxe.io.Path;
-using Reflect;
 
 class PathMatcher<Params:{}> {
 	final segments:Array<PathSegment>;
