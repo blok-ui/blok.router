@@ -88,18 +88,9 @@ class PageBuilder extends BuildStep {
 	public function steps() return [];
 
 	public function apply(context:BuildContext) {
-		var constructor = switch findAncestorOfType(ConstructorBuildStep) {
-			case Some(constructor): constructor;
-			case None: return;
-		}
-		var lifecycle = switch findAncestorOfType(LifecycleBuildStep) {
-			case Some(lifecycle): lifecycle;
-			case None: return;
-		}
-		var router = switch findAncestorOfType(RouteConstructorBuildStep) {
-			case Some(router): router;
-			case None: return;
-		}
+		var constructor = findAncestorOfType(ConstructorBuildStep).orThrow();
+		var lifecycle = findAncestorOfType(LifecycleBuildStep).orThrow();
+		var router = findAncestorOfType(RouteConstructorBuildStep).orThrow();
 
 		switch info.params {
 			case TAnonymous(fields):
@@ -152,11 +143,7 @@ class RouteConstructorBuildStep extends BuildStep {
 	public function steps() return childSteps;
 
 	public function apply(context:BuildContext) {
-		var constructor = switch findAncestorOfType(ConstructorBuildStep) {
-			case Some(constructor): constructor;
-			case None: return;
-		}
-
+		var constructor = findAncestorOfType(ConstructorBuildStep).orThrow();
 		var routeParamsType = info.params;
 		var componentPath = context.type.toTypePath();
 		var router = init.getProps();
